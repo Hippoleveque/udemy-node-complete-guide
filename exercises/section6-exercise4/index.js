@@ -11,7 +11,7 @@ app.set("views", "views");
 app.use(parser);
 app.use(usersRoutes);
 app.use((req, res) => {
-  res.render("404", { pageTitle: "Page Not Found" });
+  res.render("404", { pageTitle: "Page Not Found", path: null });
 });
 
 app.listen(3000);
