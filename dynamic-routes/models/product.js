@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const Cart = require("./cart");
 
 const p = path.join(
   path.dirname(process.mainModule.filename),
@@ -18,7 +19,8 @@ const getProductsFromFile = (cb) => {
 };
 
 module.exports = class Product {
-  constructor(title, imageUrl, description, price) {
+  constructor(id, title, imageUrl, description, price) {
+    this.id = id;
     this.title = title;
     this.imageUrl = imageUrl;
     this.description = description;
@@ -26,9 +28,14 @@ module.exports = class Product {
   }
 
   save() {
-    this.id = Math.random().toString();
     getProductsFromFile((products) => {
-      products.push(this);
+      if (this.id) {
+        const productIdx = products.findIndex((el) => el.id === this.id);
+        products[productIdx] = this;
+      } else {
+        this.id = Math.random().toString();
+        products.push(this);
+      }
       fs.writeFile(p, JSON.stringify(products), (err) => {
         console.log(err);
       });
@@ -48,17 +55,33 @@ module.exports = class Product {
     getProductsFromFile(cb);
   }
 
-  static edit(productId, updatedProduct, cb) {
+  static remove(productId) {
     getProductsFromFile((products) => {
-      const productIdx = products.findIndex((item) => item.id === productId);
-      if (productIdx !== -1) {
-        products[productIdx] = { ...updatedProduct, id: productId}
-        fs.writeFile(p, JSON.stringify(products), (err) => {
-          console.log(err);
-        });
-      }
-      cb()
+      const productPrice = products.find(
+        (product) => product.id === productId
+      ).price;
+      products = products.filter((product) => product.id !== productId);
+      Cart.getProductsFromFile((products) => {
+        if (products.find((el) => el.id === productId)) {
+          Cart.remove(productId, productPrice);
+        }
+      });
+      fs.writeFile(p, JSON.stringify(products), (err) => {
+        console.log(err);
+      });
     });
   }
 
+  // static edit(productId, updatedProduct, cb) {
+  //   getProductsFromFile((products) => {
+  //     const productIdx = products.findIndex((item) => item.id === productId);
+  //     if (productIdx !== -1) {
+  //       products[productIdx] = { ...updatedProduct, id: productId}
+  //       fs.writeFile(p, JSON.stringify(products), (err) => {
+  //         console.log(err);
+  //       });
+  //     }
+  //     cb()
+  //   });
+  // }
 };
