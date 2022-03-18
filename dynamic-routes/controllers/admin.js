@@ -21,13 +21,15 @@ exports.postAddProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll((products) => {
-    res.render("admin/products", {
-      prods: products,
-      pageTitle: "Admin Products",
-      path: "/admin/products",
-    });
-  });
+  Product.fetchAll()
+    .then(([rows, fieldData]) => {
+      res.render("admin/products", {
+        prods: rows,
+        pageTitle: "Admin Products",
+        path: "/admin/products",
+      });
+    })
+    .catch((err) => console.log(err));
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -39,6 +41,13 @@ exports.getEditProduct = (req, res, next) => {
       pageTitle: "Edit Product",
     });
   });
+  Product.fetch(productId).then(([rows]) =>
+    res.render("admin/edit-product", {
+      product: rows[0],
+      path: "/admin/products",
+      pageTitle: "Edit Product",
+    })
+  ).catch(err => console.log(err));
 };
 
 exports.postEditProduct = (req, res, next) => {

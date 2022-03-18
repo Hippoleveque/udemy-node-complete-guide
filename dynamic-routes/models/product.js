@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const Cart = require("./cart");
+const db = require("../util/database");
 
 const p = path.join(
   path.dirname(process.mainModule.filename),
@@ -28,48 +29,25 @@ module.exports = class Product {
   }
 
   save() {
-    getProductsFromFile((products) => {
-      if (this.id) {
-        const productIdx = products.findIndex((el) => el.id === this.id);
-        products[productIdx] = this;
-      } else {
-        this.id = Math.random().toString();
-        products.push(this);
-      }
-      fs.writeFile(p, JSON.stringify(products), (err) => {
-        console.log(err);
-      });
-    });
+    db.execute(
+      `INSERT INTO products (title, description, price, imageURL) VALUES ('${this.title}', '${this.description}', ${this.price}, '${this.imageUrl}')`
+    );
+    db.execute(
+      "INSERT INTO products (title, description, price, imageURL) VALUES (?, ?, ?, ?)",
+      [this.title, this.description, this.price, this.imageUrl]
+    );
   }
 
-  static fetch(id, cb) {
-    getProductsFromFile((products) => {
-      const product = products.find((item) => item.id === id);
-      if (product) {
-        cb(product);
-      }
-    });
+  static fetch(id) {
+    return db.execute("SELECT * FROM products WHERE id=?;", [id]);
   }
 
-  static fetchAll(cb) {
-    getProductsFromFile(cb);
+  static fetchAll() {
+    return db.execute("SELECT * FROM products;");
   }
 
   static remove(productId) {
-    getProductsFromFile((products) => {
-      const productPrice = products.find(
-        (product) => product.id === productId
-      ).price;
-      products = products.filter((product) => product.id !== productId);
-      Cart.getProductsFromFile((products) => {
-        if (products.find((el) => el.id === productId)) {
-          Cart.remove(productId, productPrice);
-        }
-      });
-      fs.writeFile(p, JSON.stringify(products), (err) => {
-        console.log(err);
-      });
-    });
+    return db.execute("DELETE FROM products WHERE id=?;", [productId]);
   }
 
   // static edit(productId, updatedProduct, cb) {

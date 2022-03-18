@@ -3,7 +3,7 @@ const sql = require("mysql2");
 const pool = sql.createPool({
     host: "localhost",
     user: "root",
-    database: "node-udemy",
+    database: "node_udemy",
     password: "eragon123"
 });
 
