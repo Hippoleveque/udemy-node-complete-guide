@@ -15,6 +15,7 @@ const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 const Product = require("./models/product");
 const User = require("./models/user");
+const { Cart } = require("./models/cart");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -22,18 +23,26 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(async (req, res, next) => {
   const user = await User.findByPk(1);
   req.user = user;
-  next()
-})
+  next();
+});
 
 app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 
 app.use(errorController.get404);
 
-
-
 Product.belongsTo(User, { constraints: true, onDelete: "CASCADE" });
 User.hasMany(Product);
+
+User.hasOne(Cart);
+Cart.belongsTo(User);
+
+Product.belongsToMany(Cart, { through: "CartProducts" });
+Cart.belongsToMany(Product, { through: "CartProducts" });
+
+
+
+User.hasOne(Cart);
 
 const main = async () => {
   try {
