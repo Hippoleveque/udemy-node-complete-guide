@@ -1,4 +1,5 @@
 const Product = require("../models/product");
+const User = require("../models/user");
 
 exports.getAddProduct = (req, res, next) => {
   res.render("admin/add-product", {
@@ -11,12 +12,13 @@ exports.getAddProduct = (req, res, next) => {
 };
 
 exports.postAddProduct = async (req, res, next) => {
+  const { user } = req;
   const title = req.body.title;
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
   try {
-    await Product.create({ title, imageUrl, description, price });
+    await user.createProduct({ title, imageUrl, description, price });
     res.redirect("/");
   } catch (err) {
     console.log(err);
