@@ -1,0 +1,93 @@
+{
+    dataValues: {
+      id: 1,
+      title: 'Harry Potter',
+      price: 20,
+      imageUrl: 'https://www.referenseo.com/wp-content/uploads/2019/03/image-attractive-960x540.jpg',
+      description: 'Harry Potter and the order of the Phoenix\r\n',
+      createdAt: 2022-04-17T19:33:48.000Z,
+      updatedAt: 2022-04-17T19:33:48.000Z,
+      userId: 1,
+      CartProducts: CartProducts {
+        dataValues: [Object],
+        _previousDataValues: [Object],
+        uniqno: 1,
+        _changed: Set(0) {},
+        _options: [Object],
+        isNewRecord: false
+      }
+    },
+    _previousDataValues: {
+      id: 1,
+      title: 'Harry Potter',
+      price: 20,
+      imageUrl: 'https://www.referenseo.com/wp-content/uploads/2019/03/image-attractive-960x540.jpg',
+      description: 'Harry Potter and the order of the Phoenix\r\n',
+      createdAt: 2022-04-17T19:33:48.000Z,
+      updatedAt: 2022-04-17T19:33:48.000Z,
+      userId: 1,
+      CartProducts: CartProducts {
+        dataValues: [Object],
+        _previousDataValues: [Object],
+        uniqno: 1,
+        _changed: Set(0) {},
+        _options: [Object],
+        isNewRecord: false
+      }
+    },
+    uniqno: 1,
+    _changed: Set(0) {},
+    _options: {
+      isNewRecord: false,
+      _schema: null,
+      _schemaDelimiter: '',
+      include: [ [Object] ],
+      includeNames: [ 'CartProducts' ],
+      includeMap: { CartProducts: [Object] },
+      includeValidated: true,
+      attributes: [
+        'id',
+        'title',
+        'price',
+        'imageUrl',
+        'description',
+        'createdAt',
+        'updatedAt',
+        'userId'
+      ],
+      raw: true
+    },
+    isNewRecord: false,
+    CartProducts: CartProducts {
+      dataValues: {
+        id: 1,
+        quantity: 1,
+        createdAt: 2022-04-17T19:33:55.000Z,
+        updatedAt: 2022-04-17T19:33:55.000Z,
+        productId: 1,
+        cartId: 1
+      },
+      _previousDataValues: {
+        id: 1,
+        quantity: 1,
+        createdAt: 2022-04-17T19:33:55.000Z,
+        updatedAt: 2022-04-17T19:33:55.000Z,
+        productId: 1,
+        cartId: 1
+      },
+      uniqno: 1,
+      _changed: Set(0) {},
+      _options: {
+        isNewRecord: false,
+        _schema: null,
+        _schemaDelimiter: '',
+        include: undefined,
+        includeNames: undefined,
+        includeMap: undefined,
+        includeValidated: true,
+        raw: true,
+        attributes: undefined
+      },
+      isNewRecord: false
+    }
+  }

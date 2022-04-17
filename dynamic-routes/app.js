@@ -1,5 +1,6 @@
 const path = require("path");
 const sequelize = require("./util/database");
+const products = require("./data/products.json");
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -53,6 +54,13 @@ const main = async () => {
         name: "Hippolyte",
         email: "hippolyte.leveque@gmail.com",
       });
+    }
+    let cart = await user.getCart();
+    if (!cart) {
+      cart = await user.createCart();
+    }
+    for (let product of products){
+      await user.createProduct(product)
     }
     app.listen(3000);
   } catch (err) {
