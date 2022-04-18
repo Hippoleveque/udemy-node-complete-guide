@@ -16,7 +16,8 @@ const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 const Product = require("./models/product");
 const User = require("./models/user");
-const { Cart } = require("./models/cart");
+const Cart = require("./models/cart");
+const CartItem = require("./models/cart-item")
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -38,8 +39,8 @@ User.hasMany(Product);
 User.hasOne(Cart);
 Cart.belongsTo(User);
 
-Product.belongsToMany(Cart, { through: "CartProducts" });
-Cart.belongsToMany(Product, { through: "CartProducts" });
+Product.belongsToMany(Cart, { through: CartItem });
+Cart.belongsToMany(Product, { through: CartItem });
 
 
 
@@ -48,6 +49,7 @@ User.hasOne(Cart);
 const main = async () => {
   try {
     const result = await sequelize.sync({ force: true });
+    // const result = await sequelize.sync();
     let user = await User.findByPk(1);
     if (!user) {
       user = await User.create({

@@ -8,7 +8,7 @@
       createdAt: 2022-04-17T19:33:48.000Z,
       updatedAt: 2022-04-17T19:33:48.000Z,
       userId: 1,
-      CartProducts: CartProducts {
+      CartItem: CartItem {
         dataValues: [Object],
         _previousDataValues: [Object],
         uniqno: 1,
@@ -26,7 +26,7 @@
       createdAt: 2022-04-17T19:33:48.000Z,
       updatedAt: 2022-04-17T19:33:48.000Z,
       userId: 1,
-      CartProducts: CartProducts {
+      CartItem: CartItem {
         dataValues: [Object],
         _previousDataValues: [Object],
         uniqno: 1,
@@ -42,8 +42,8 @@
       _schema: null,
       _schemaDelimiter: '',
       include: [ [Object] ],
-      includeNames: [ 'CartProducts' ],
-      includeMap: { CartProducts: [Object] },
+      includeNames: [ 'CartItem' ],
+      includeMap: { CartItem: [Object] },
       includeValidated: true,
       attributes: [
         'id',
@@ -58,7 +58,7 @@
       raw: true
     },
     isNewRecord: false,
-    CartProducts: CartProducts {
+    CartItem: CartItem {
       dataValues: {
         id: 1,
         quantity: 1,
