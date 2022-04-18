@@ -9,14 +9,22 @@ exports.getAddProduct = (req, res, next) => {
 };
 
 exports.postAddProduct = async (req, res, next) => {
+  const { user } = req;
   const title = req.body.title;
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  const product = new Product(title, price, description, imageUrl);
+  const product = new Product(
+    title,
+    price,
+    description,
+    imageUrl,
+    null,
+    user._id
+  );
   try {
     await product.save();
-    res.redirect("/");
+    res.redirect("/admin/products");
   } catch (err) {
     console.log(err);
   }
@@ -64,7 +72,8 @@ exports.postEditProduct = async (req, res, next) => {
 };
 
 exports.getProducts = async (req, res) => {
-  let products = await Product.findAll();
+  const { user } = req;
+  let products = await Product.findAll(user._id);
   products = await products.toArray();
   products = products.map((product) => {
     return {

@@ -2,19 +2,19 @@ const { getDb } = require("../util/database");
 const mongodb = require("mongodb");
 
 class Product {
-  constructor(title, price, description, imageUrl, id) {
+  constructor(title, price, description, imageUrl, id, userId) {
     this.title = title;
     this.price = price;
     this.description = description;
     this.imageUrl = imageUrl;
-    if (id) {
-      this._id = new mongodb.ObjectId(id);;
-    }
+    this._id = id ? new mongodb.ObjectId(id) : null;
+    this.userId = userId;
   }
 
-  static findAll() {
+  static findAll(userId) {
     const productsCollection = getDb().collection("products");
-    return productsCollection.find();
+    const query = { userId: userId };
+    return productsCollection.find(query);
   }
 
   static findById(prodId) {

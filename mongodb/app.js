@@ -12,18 +12,19 @@ app.set("view engine", "ejs");
 app.set("views", "views");
 
 const adminRoutes = require("./routes/admin");
-const shopRoutes = require('./routes/shop');
+const shopRoutes = require("./routes/shop");
+const User = require("./models/user");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use((req, res, next) => {
-  // User.findById(1)
-  //   .then(user => {
-  //     req.user = user;
-  //     next();
-  //   })
-  //   .catch(err => console.log(err));
+app.use(async (req, res, next) => {
+  try {
+    const user = await User.findByName("Hippolyte");
+    req.user = user;
+  } catch (err) {
+    console.log(err);
+  }
   next();
 });
 
@@ -34,6 +35,12 @@ app.use(errorController.get404);
 
 const main = async () => {
   const client = await mongoConnect();
+  let user = await User.findByName("Hippolyte");
+  if (!user) {
+    user = new User("Hippolyte", "hippolyte.leveque@gmail.com");
+    const res = await user.save();
+    console.log(res);
+  }
   // console.log(client);
   app.listen(3000);
 };
