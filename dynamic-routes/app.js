@@ -17,7 +17,9 @@ const shopRoutes = require("./routes/shop");
 const Product = require("./models/product");
 const User = require("./models/user");
 const Cart = require("./models/cart");
-const CartItem = require("./models/cart-item")
+const CartItem = require("./models/cart-item");
+const OrderItem = require("./models/order-item");
+const Order = require("./models/order");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
@@ -42,7 +44,11 @@ Cart.belongsTo(User);
 Product.belongsToMany(Cart, { through: CartItem });
 Cart.belongsToMany(Product, { through: CartItem });
 
+User.hasMany(Order);
+Order.belongsTo(User, { constraints: true, onDelete: "CASCADE" });
 
+Order.belongsToMany(Product, { through: OrderItem})
+Product.belongsToMany(Order, { through: OrderItem})
 
 User.hasOne(Cart);
 
@@ -61,8 +67,8 @@ const main = async () => {
     if (!cart) {
       cart = await user.createCart();
     }
-    for (let product of products){
-      await user.createProduct(product)
+    for (let product of products) {
+      await user.createProduct(product);
     }
     app.listen(3000);
   } catch (err) {

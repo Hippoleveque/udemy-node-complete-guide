@@ -53,10 +53,10 @@ exports.postCart = async (req, res, next) => {
   }
   let qty = 1;
   // first, get the cart Products to check if the relation already exists
-  const cartProducts = await cart.getProducts({where: {id: productId}});
+  const cartProducts = await cart.getProducts({ where: { id: productId } });
   if (cartProducts.length > 0) {
-    product = cartProducts[0]
-    qty = product.cartItem.dataValues.quantity + 1
+    product = cartProducts[0];
+    qty = product.cartItem.dataValues.quantity + 1;
   } else {
     product = await Product.findByPk(productId);
   }
@@ -69,7 +69,7 @@ exports.deleteCart = async (req, res) => {
   let { productId } = req.body;
   let cart = await user.getCart();
   productId = parseInt(productId);
-  const products = await cart.getProducts({where: { id: productId}});
+  const products = await cart.getProducts({ where: { id: productId } });
   const product = products[0];
   try {
     await cart.removeProduct(product);
@@ -79,9 +79,33 @@ exports.deleteCart = async (req, res) => {
   }
 };
 
-exports.getOrders = (req, res, next) => {
+exports.postOrder = async (req, res) => {
+  const { user } = req;
+  const cart = await user.getCart();
+  const products = await cart.getProducts();
+  const orderTotalPrice = products.reduce((currentPrice, currentProduct) => {
+    const newPrice =
+      currentPrice + currentProduct.price * currentProduct.cartItem.quantity;
+    return newPrice;
+  }, 0);
+  const order = await user.createOrder({ totalPrice: orderTotalPrice });
+  await order.addProducts(
+    products.map((product) => {
+      product.orderItem = { quantity: product.cartItem.quantity };
+      return product;
+    })
+  );
+  await cart.removeProducts(products);
+  res.redirect("/orders");
+};
+
+exports.getOrders = async (req, res) => {
+  const { user } = req;
+  const orders = await user.getOrders({ include: ["products"] });
+  console.log(orders[0].products);
   res.render("shop/orders", {
     path: "/orders",
+    orders,
     pageTitle: "Your Orders",
   });
 };
