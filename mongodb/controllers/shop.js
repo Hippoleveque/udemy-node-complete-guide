@@ -40,6 +40,7 @@ exports.getIndex = async (req, res) => {
   try {
     let products = await Product.findAll(user._id);
     products = await products.toArray();
+    console.log(products);
     products = products.map((product) => {
       product.id = product._id.toString();
       return product;
@@ -56,8 +57,8 @@ exports.getIndex = async (req, res) => {
 
 exports.getCart = async (req, res, next) => {
   const { user } = req;
-  const cart = await Cart.findByUser(user._id);
-  const cartProducts = cart ? cart.products : [];
+  const cartProducts = await user.getCart();
+  console.log(cartProducts);
   res.render("shop/cart", {
     path: "/cart",
     pageTitle: "Your Cart",
@@ -69,19 +70,8 @@ exports.postCart = async (req, res, next) => {
   const { user } = req;
   const prodId = req.body.productId;
   try {
-    const cart = await Cart.findByUser(user._id);
-    let cartProducts = cart?.products || [];
-    const newProduct = await Product.findById(prodId);
-    const foundProduct = cartProducts.find(
-      (product) => product._id.toString() === newProduct._id.toString()
-    );
-    if (foundProduct) {
-      foundProduct.quantity++;
-    } else {
-      cartProducts.push({ ...newProduct, quantity: 1 });
-    }
-    const newCart = new Cart(user._id, cartProducts, cart?._id || null);
-    await newCart.save();
+    const product = await Product.findById(prodId);
+    await user.addToCart(product);
     res.redirect("/cart");
   } catch (err) {
     console.log(err);
@@ -92,12 +82,7 @@ exports.postCartDeleteProduct = async (req, res, next) => {
   const { user } = req;
   const prodId = req.body.productId;
   try {
-    const cart = await Cart.findByUser(user._id);
-    const newProducts = cart.products.filter(
-      (product) => product._id.toString() !== prodId.toString()
-    );
-    const newCart = new Cart(user._id, newProducts, cart._id);
-    await newCart.save();
+    await user.removeFromCart(prodId);
     res.redirect("/cart");
   } catch (err) {
     console.log(err);
@@ -107,10 +92,7 @@ exports.postCartDeleteProduct = async (req, res, next) => {
 exports.postOrder = async (req, res, next) => {
   const { user } = req;
   try {
-    const cart = await Cart.findByUser(user._id);
-    const cartProducts = cart.products;
-    const newOrder = new Order(user._id, cartProducts);
-    await newOrder.save();
+    user.addOrder();
     res.redirect("/orders");
   } catch (err) {
     console.log(err);
@@ -120,8 +102,8 @@ exports.postOrder = async (req, res, next) => {
 exports.getOrders = async (req, res, next) => {
   const { user } = req;
   try {
-    let orders = await Order.findAll(user._id);
-    orders = await orders.toArray();
+    const orders = await user.getOrders();
+    console.log(orders)
     res.render("shop/orders", {
       path: "/orders",
       pageTitle: "Your Orders",

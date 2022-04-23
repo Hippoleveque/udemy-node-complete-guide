@@ -21,7 +21,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(async (req, res, next) => {
   try {
     const user = await User.findByName("Hippolyte");
-    req.user = user;
+    req.user = new User(user.username, user.email, user.cart, user._id);
   } catch (err) {
     console.log(err);
   }
@@ -37,7 +37,7 @@ const main = async () => {
   const client = await mongoConnect();
   let user = await User.findByName("Hippolyte");
   if (!user) {
-    user = new User("Hippolyte", "hippolyte.leveque@gmail.com");
+    user = new User("Hippolyte", "hippolyte.leveque@gmail.com", { items: []});
     const res = await user.save();
     console.log(res);
   }
