@@ -49,4 +49,9 @@ userSchema.methods.removeFromCart = function(prodId) {
     return this.save();
 }
 
+userSchema.methods.clearCart = function() {
+    this.cart = {items: []};
+    return this.save();
+}
+
 export default model("User", userSchema);

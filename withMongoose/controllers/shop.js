@@ -46,7 +46,6 @@ export const getCart = async (req, res, next) => {
   let { user } = req;
   try {
     user = await user.populate("cart.items.productId").execPopulate();
-    console.log(user.cart.items);
     res.render("shop/cart", {
       path: "/cart",
       pageTitle: "Your Cart",
@@ -80,11 +79,17 @@ export const postCartDeleteProduct = async (req, res, next) => {
 };
 
 export const postOrder = async (req, res, next) => {
-  const { user } = req;
+  let { user } = req;
   try {
-    const order = new Order({ items: user.cart.items, userId: user._id });
-    user.cart.items = [];
-    await Promise.all([order.save(), user.save()]);
+    user = await user.populate("cart.items.productId").execPopulate();
+    const products = user.cart.items.map((prod) => {
+      return { product: { ...prod.productId._doc }, quantity: prod.quantity };
+    });
+    const order = new Order({
+      items: products,
+      user: { userId: user, name: user.userName },
+    });
+    await Promise.all([order.save(), user.clearCart()]);
     res.redirect("/orders");
   } catch (err) {
     console.log(err);
@@ -94,9 +99,7 @@ export const postOrder = async (req, res, next) => {
 export const getOrders = async (req, res, next) => {
   const { user } = req;
   try {
-    const orders = await Order.find({ userId: user._id })
-      .populate("items.productId")
-      .exec();
+    const orders = await Order.find({ "user.userId": user._id }).exec();
     res.render("shop/orders", {
       path: "/orders",
       pageTitle: "Your Orders",
