@@ -14,11 +14,11 @@ import {
 
 const router = express.Router();
 
-// router.get('/', shopController.getIndex);
+router.get('/', getIndex);
 
-// router.get('/products', shopController.getProducts);
+router.get('/products', getProducts);
 
-// router.get('/products/:productId', shopController.getProduct);
+router.get('/products/:productId', getProduct);
 
 // router.get('/cart', shopController.getCart);
 
