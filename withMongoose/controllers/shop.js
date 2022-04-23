@@ -1,5 +1,6 @@
 import Product from "../models/product.js";
 import User from "../models/user.js";
+import Order from "../models/order.js";
 
 export const getProducts = async (req, res, next) => {
   try {
@@ -94,25 +95,29 @@ export const postCartDeleteProduct = async (req, res, next) => {
   }
 };
 
-export const postOrder = (req, res, next) => {
-  let fetchedCart;
-  req.user
-    .addOrder()
-    .then((result) => {
-      res.redirect("/orders");
-    })
-    .catch((err) => console.log(err));
+export const postOrder = async (req, res, next) => {
+  const { user } = req;
+  try {
+    const order = new Order({items: user.cart.items, userId: user._id});
+    user.cart.items = [];
+    await Promise.all([order.save(), user.save()])
+    res.redirect("/orders");
+  } catch (err) {
+    console.log(err);
+  }
 };
 
-export const getOrders = (req, res, next) => {
-  req.user
-    .getOrders()
-    .then((orders) => {
-      res.render("shop/orders", {
-        path: "/orders",
-        pageTitle: "Your Orders",
-        orders: orders,
-      });
-    })
-    .catch((err) => console.log(err));
+export const getOrders = async (req, res, next) => {
+  const { user } = req;
+  try {
+    const orders = await Order.find({userId: user._id}).populate("items.productId").exec();
+    res.render("shop/orders", {
+      path: "/orders",
+      pageTitle: "Your Orders",
+      orders: orders,
+    });
+  } catch (err) {
+    console.log(err);
+  }
+
 };
