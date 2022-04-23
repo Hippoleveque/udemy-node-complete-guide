@@ -74,8 +74,17 @@ class User {
 
   async addOrder() {
     const ordersCollection = getDb().collection("orders");
-    await ordersCollection.insertOne({...this.cart, userId: this._id});
-    const updatedCart = {items: []};
+    const items = await this.getCart();
+    const order = {
+      items: items,
+      user: {
+        _id: this._id,
+        username: this.username,
+        email: this.email,
+      },
+    };
+    await ordersCollection.insertOne(order);
+    const updatedCart = { items: [] };
     const usersCollection = getDb().collection("users");
     const query = { _id: this._id };
     return usersCollection.updateOne(query, {
@@ -85,30 +94,10 @@ class User {
 
   async getOrders() {
     const ordersCollection = getDb().collection("orders");
-    let orders = await ordersCollection.find({userId: this._id});
+    let orders = await ordersCollection.find({ "user._id": this._id });
     orders = await orders.toArray();
-    let productIds = orders.reduce((currentIds, currentOrder) => {
-      let newIds = currentOrder.items.map(prd => prd.productId);
-      return currentIds.concat(newIds);
-    }, [])
-    const productsCollection = getDb().collection("products");
-    const productsCursor = await productsCollection.find({
-      _id: { $in: productIds },
-    });
-    const products = await productsCursor.toArray();
-
-    orders = orders.map(order => {
-      const newItems = order.items.map(prd => {
-        const fullProduct = products.find(prod => prod._id.toString() === prd.productId.toString());
-        return {
-          ...fullProduct,
-          quantity: prd.quantity
-        }
-      })
-      return {...order, items:  newItems}
-    })
+    console.log(orders)
     return orders;
-
   }
 
   save() {
