@@ -27,4 +27,26 @@ const userSchema = new Schema({
   },
 });
 
+userSchema.methods.addToCart = function(prodId) {
+    const cartProducts = [...this.cart.items];
+    const productIdx = cartProducts.findIndex(
+      (prod) => prod.productId.toString() === prodId.toString()
+    );
+    if (productIdx > -1) {
+      cartProducts[productIdx].quantity++;
+    } else {
+      cartProducts.push({ productId: prodId, quantity: 1 });
+    }
+    this.cart.items = cartProducts;
+    return this.save();
+}
+
+userSchema.methods.removeFromCart = function(prodId) {
+    const cartProducts = this.cart.items.filter(
+      (prod) => prod.productId.toString() !== prodId.toString()
+    );
+    this.cart.items = cartProducts;
+    return this.save();
+}
+
 export default model("User", userSchema);

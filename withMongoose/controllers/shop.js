@@ -45,9 +45,7 @@ export const getIndex = async (req, res, next) => {
 export const getCart = async (req, res, next) => {
   let { user } = req;
   try {
-    user = await User.findById(user._id)
-      .populate("cart.items.productId")
-      .exec();
+    user = await user.populate("cart.items.productId").execPopulate();
     console.log(user.cart.items);
     res.render("shop/cart", {
       path: "/cart",
@@ -62,18 +60,8 @@ export const getCart = async (req, res, next) => {
 export const postCart = async (req, res, next) => {
   const { user } = req;
   const prodId = req.body.productId;
-  const cartProducts = [...user.cart.items];
-  const productIdx = cartProducts.findIndex(
-    (prod) => prod.productId.toString() === prodId.toString()
-  );
-  if (productIdx > -1) {
-    cartProducts[productIdx].quantity++;
-  } else {
-    cartProducts.push({ productId: prodId, quantity: 1 });
-  }
-  user.cart.items = cartProducts;
   try {
-    await user.save();
+    await user.addToCart(prodId);
     res.redirect("/cart");
   } catch (err) {
     console.log(err);
@@ -83,12 +71,8 @@ export const postCart = async (req, res, next) => {
 export const postCartDeleteProduct = async (req, res, next) => {
   const { user } = req;
   const prodId = req.body.productId;
-  const cartProducts = user.cart.items.filter(
-    (prod) => prod.productId.toString() !== prodId.toString()
-  );
-  user.cart.items = cartProducts;
   try {
-    await user.save();
+    await user.removeFromCart(prodId);
     res.redirect("/cart");
   } catch (err) {
     console.log(err);
@@ -98,9 +82,9 @@ export const postCartDeleteProduct = async (req, res, next) => {
 export const postOrder = async (req, res, next) => {
   const { user } = req;
   try {
-    const order = new Order({items: user.cart.items, userId: user._id});
+    const order = new Order({ items: user.cart.items, userId: user._id });
     user.cart.items = [];
-    await Promise.all([order.save(), user.save()])
+    await Promise.all([order.save(), user.save()]);
     res.redirect("/orders");
   } catch (err) {
     console.log(err);
@@ -110,7 +94,9 @@ export const postOrder = async (req, res, next) => {
 export const getOrders = async (req, res, next) => {
   const { user } = req;
   try {
-    const orders = await Order.find({userId: user._id}).populate("items.productId").exec();
+    const orders = await Order.find({ userId: user._id })
+      .populate("items.productId")
+      .exec();
     res.render("shop/orders", {
       path: "/orders",
       pageTitle: "Your Orders",
@@ -119,5 +105,4 @@ export const getOrders = async (req, res, next) => {
   } catch (err) {
     console.log(err);
   }
-
 };
