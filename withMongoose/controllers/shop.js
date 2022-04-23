@@ -1,4 +1,5 @@
 import Product from "../models/product.js";
+import User from "../models/user.js";
 
 export const getProducts = async (req, res, next) => {
   try {
@@ -40,39 +41,57 @@ export const getIndex = async (req, res, next) => {
   }
 };
 
-export const getCart = (req, res, next) => {
-  req.user
-    .getCart()
-    .then((products) => {
-      res.render("shop/cart", {
-        path: "/cart",
-        pageTitle: "Your Cart",
-        products: products,
-      });
-    })
-    .catch((err) => console.log(err));
-};
-
-export const postCart = (req, res, next) => {
-  const prodId = req.body.productId;
-  Product.findById(prodId)
-    .then((product) => {
-      return req.user.addToCart(product);
-    })
-    .then((result) => {
-      console.log(result);
-      res.redirect("/cart");
+export const getCart = async (req, res, next) => {
+  let { user } = req;
+  try {
+    user = await User.findById(user._id)
+      .populate("cart.items.productId")
+      .exec();
+    console.log(user.cart.items);
+    res.render("shop/cart", {
+      path: "/cart",
+      pageTitle: "Your Cart",
+      products: user.cart.items,
     });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
-export const postCartDeleteProduct = (req, res, next) => {
+export const postCart = async (req, res, next) => {
+  const { user } = req;
   const prodId = req.body.productId;
-  req.user
-    .deleteItemFromCart(prodId)
-    .then((result) => {
-      res.redirect("/cart");
-    })
-    .catch((err) => console.log(err));
+  const cartProducts = [...user.cart.items];
+  const productIdx = cartProducts.findIndex(
+    (prod) => prod.productId.toString() === prodId.toString()
+  );
+  if (productIdx > -1) {
+    cartProducts[productIdx].quantity++;
+  } else {
+    cartProducts.push({ productId: prodId, quantity: 1 });
+  }
+  user.cart.items = cartProducts;
+  try {
+    await user.save();
+    res.redirect("/cart");
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const postCartDeleteProduct = async (req, res, next) => {
+  const { user } = req;
+  const prodId = req.body.productId;
+  const cartProducts = user.cart.items.filter(
+    (prod) => prod.productId.toString() !== prodId.toString()
+  );
+  user.cart.items = cartProducts;
+  try {
+    await user.save();
+    res.redirect("/cart");
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 export const postOrder = (req, res, next) => {

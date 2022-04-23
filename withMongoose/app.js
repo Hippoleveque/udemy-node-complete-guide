@@ -45,6 +45,7 @@ const main = async () => {
       user = new User({
         userName: "Hippolyte",
         email: "hippolyte.leveque@gmail.com",
+        cart: {items: []}
       });
       await user.save();
     }

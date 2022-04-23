@@ -10,6 +10,7 @@ export const getAddProduct = (req, res, next) => {
 };
 
 export const postAddProduct = async (req, res, next) => {
+  const { user } = req;
   const title = req.body.title;
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
@@ -19,6 +20,7 @@ export const postAddProduct = async (req, res, next) => {
     price,
     description,
     imageUrl,
+    userId: user,
   });
   try {
     await product.save();
@@ -60,7 +62,7 @@ export const postEditProduct = async (req, res, next) => {
     description: updatedDesc,
     imageUrl: updatedImageUrl
   }
-  
+
   try {
     await Product.findByIdAndUpdate(prodId, product).exec();
     res.redirect("/admin/products");
