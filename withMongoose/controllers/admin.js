@@ -2,6 +2,8 @@ import Product from "../models/product.js"
 
 
 export const getAddProduct = (req, res, next) => {
+  const { user } = req;
+  console.log(user);
   res.render('admin/edit-product', {
     pageTitle: 'Add Product',
     path: '/admin/add-product',
@@ -9,29 +11,24 @@ export const getAddProduct = (req, res, next) => {
   });
 };
 
-export const postAddProduct = (req, res, next) => {
+export const postAddProduct = async (req, res, next) => {
   const title = req.body.title;
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  const product = new Product(
+  const product = new Product({
     title,
     price,
     description,
-    imageUrl,
-    null,
-    req.user._id
+    imageUrl}
   );
-  product
-    .save()
-    .then(result => {
-      // console.log(result);
-      console.log('Created Product');
-      res.redirect('/admin/products');
-    })
-    .catch(err => {
-      console.log(err);
-    });
+
+  try {
+    await product.save();
+    res.redirect("/admin/products");
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 export const getEditProduct = (req, res, next) => {

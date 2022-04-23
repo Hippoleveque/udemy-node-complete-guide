@@ -3,6 +3,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import { fileURLToPath } from "url";
+import User from "./models/user.js";
 
 import { get404 } from "./controllers/error.js";
 
@@ -19,14 +20,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, "public")));
 
-// app.use((req, res, next) => {
-//   User.findById('5baa2528563f16379fc8a610')
-//     .then(user => {
-//       req.user = new User(user.name, user.email, user.cart, user._id);
-//       next();
-//     })
-//     .catch(err => console.log(err));
-// });
+app.use(async (req, res, next) => {
+  try {
+    const user = await User.findOne({ userName: "Hippolyte" });
+    req.user = user;
+    next();
+  } catch (err) {
+    console.log(err);
+  }
+});
 
 app.use("/admin", adminRoutes);
 app.use(shopRoutes);
@@ -38,6 +40,14 @@ const mongoUrl = "mongodb://localhost:27017/shopMongoose";
 const main = async () => {
   try {
     await mongoose.connect(mongoUrl);
+    let user = await User.findOne({ userName: "Hippolyte" }).exec();
+    if (!user) {
+      user = new User({
+        userName: "Hippolyte",
+        email: "hippolyte.leveque@gmail.com",
+      });
+      await user.save();
+    }
     app.listen(3000);
   } catch (err) {
     console.log(err);
