@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import { fileURLToPath } from "url";
 import MongoSession from "connect-mongodb-session";
 import csrf from "csurf";
+import flash from "connect-flash";
 const MongoDBStore = MongoSession(session);
 
 import User from "./models/user.js";
@@ -56,6 +57,7 @@ app.use(async (req, res, next) => {
 });
 
 app.use(csrfProctection);
+app.use(flash());
 
 app.use((req, res, next) => {
   res.locals.isAuthenticated = req.session.isLoggedIn;
