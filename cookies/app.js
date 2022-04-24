@@ -5,6 +5,7 @@ import session from "express-session";
 import mongoose from "mongoose";
 import { fileURLToPath } from "url";
 import MongoSession from "connect-mongodb-session";
+import csrf from "csurf";
 const MongoDBStore = MongoSession(session);
 
 import User from "./models/user.js";
@@ -14,10 +15,11 @@ import { get404 } from "./controllers/error.js";
 const MONGO_URL = "mongodb://localhost:27017/shopCookies";
 
 const app = express();
-var store = new MongoDBStore({
+let store = new MongoDBStore({
   uri: MONGO_URL,
   collection: "sessions",
 });
+const csrfProctection = csrf();
 
 app.set("view engine", "ejs");
 app.set("views", "views");
@@ -51,6 +53,14 @@ app.use(async (req, res, next) => {
   } catch (err) {
     console.log(err);
   }
+});
+
+app.use(csrfProctection);
+
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
 });
 
 app.use("/admin", adminRoutes);

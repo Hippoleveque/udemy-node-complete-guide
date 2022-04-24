@@ -3,14 +3,12 @@ import User from "../models/user.js";
 import Order from "../models/order.js";
 
 export const getProducts = async (req, res, next) => {
-  const { isLoggedIn } = req.session;
   try {
     const products = await Product.find().exec();
     res.render("shop/product-list", {
       prods: products,
       pageTitle: "All Products",
       path: "/products",
-      isAuthenticated: isLoggedIn,
     });
   } catch (err) {
     console.log(err);
@@ -18,7 +16,6 @@ export const getProducts = async (req, res, next) => {
 };
 
 export const getProduct = async (req, res, next) => {
-  const { isLoggedIn } = req.session;
   const prodId = req.params.productId;
   try {
     const product = await Product.findById(prodId).exec();
@@ -26,7 +23,6 @@ export const getProduct = async (req, res, next) => {
       product: product,
       pageTitle: product.title,
       path: "/products",
-      isAuthenticated: isLoggedIn,
     });
   } catch (err) {
     console.log(err);
@@ -34,14 +30,12 @@ export const getProduct = async (req, res, next) => {
 };
 
 export const getIndex = async (req, res, next) => {
-  const { isLoggedIn } = req.session;
   try {
     const products = await Product.find().exec();
     res.render("shop/index", {
       prods: products,
       pageTitle: "Shop",
       path: "/",
-      isAuthenticated: isLoggedIn,
     });
   } catch (err) {
     console.log(err);
@@ -49,7 +43,6 @@ export const getIndex = async (req, res, next) => {
 };
 
 export const getCart = async (req, res, next) => {
-  const { isLoggedIn } = req.session;
   let { user } = req;
   try {
     user = await user.populate("cart.items.productId").execPopulate();
@@ -57,7 +50,6 @@ export const getCart = async (req, res, next) => {
       path: "/cart",
       pageTitle: "Your Cart",
       products: user.cart.items,
-      isAuthenticated: isLoggedIn,
     });
   } catch (err) {
     console.log(err);
@@ -66,7 +58,6 @@ export const getCart = async (req, res, next) => {
 
 export const postCart = async (req, res, next) => {
   const { user } = req;
-  console.log(user);
   const prodId = req.body.productId;
   try {
     await user.addToCart(prodId);
@@ -106,7 +97,6 @@ export const postOrder = async (req, res, next) => {
 };
 
 export const getOrders = async (req, res, next) => {
-  const { isLoggedIn } = req.session;
   let { user } = req;
   try {
     const orders = await Order.find({ "user.userId": user._id }).exec();
@@ -114,7 +104,6 @@ export const getOrders = async (req, res, next) => {
       path: "/orders",
       pageTitle: "Your Orders",
       orders: orders,
-      isAuthenticated: isLoggedIn,
     });
   } catch (err) {
     console.log(err);

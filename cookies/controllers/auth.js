@@ -2,11 +2,9 @@ import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 
 export const getLogin = (req, res, next) => {
-  const { isLoggedIn } = req.session;
   res.render("auth/login", {
     path: "/login",
     pageTitle: "Login",
-    isAuthenticated: isLoggedIn,
   });
 };
 
@@ -36,11 +34,9 @@ export const postLogout = async (req, res, next) => {
 };
 
 export const getSignup = (req, res, next) => {
-  const { isLoggedIn } = req.session;
   res.render("auth/signup", {
     path: "/signup",
     pageTitle: "Signup",
-    isAuthenticated: isLoggedIn,
   });
 };
 
