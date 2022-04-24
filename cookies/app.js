@@ -62,15 +62,6 @@ app.use(get404);
 const main = async () => {
   try {
     await mongoose.connect(MONGO_URL);
-    let user = await User.findOne({ userName: "Hippolyte" }).exec();
-    if (!user) {
-      user = new User({
-        userName: "Hippolyte",
-        email: "hippolyte.leveque@gmail.com",
-        cart: { items: [] },
-      });
-      await user.save();
-    }
     app.listen(3000);
   } catch (err) {
     console.log(err);

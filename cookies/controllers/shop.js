@@ -66,6 +66,7 @@ export const getCart = async (req, res, next) => {
 
 export const postCart = async (req, res, next) => {
   const { user } = req;
+  console.log(user);
   const prodId = req.body.productId;
   try {
     await user.addToCart(prodId);
