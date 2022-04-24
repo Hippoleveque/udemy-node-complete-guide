@@ -1,12 +1,10 @@
 import Product from "../models/product.js";
 
 export const getAddProduct = (req, res, next) => {
-  const { isLoggedIn } = req.session;
   res.render("admin/edit-product", {
     pageTitle: "Add Product",
     path: "/admin/add-product",
     editing: false,
-    isAuthenticated: isLoggedIn,
   });
 };
 
@@ -32,7 +30,6 @@ export const postAddProduct = async (req, res, next) => {
 };
 
 export const getEditProduct = async (req, res, next) => {
-  const { isLoggedIn } = req.session;
   const editMode = req.query.edit;
   if (!editMode) {
     return res.redirect("/");
@@ -45,7 +42,6 @@ export const getEditProduct = async (req, res, next) => {
       path: "/admin/edit-product",
       editing: editMode,
       product: product,
-      isAuthenticated: isLoggedIn,
     });
   } catch (err) {
     console.log(err);
@@ -75,14 +71,12 @@ export const postEditProduct = async (req, res, next) => {
 };
 
 export const getProducts = async (req, res, next) => {
-  const { isLoggedIn } = req.session;
   try {
     const products = await Product.find().exec();
     res.render("admin/products", {
       prods: products,
       pageTitle: "Admin Products",
       path: "/admin/products",
-      isAuthenticated: isLoggedIn,
     });
   } catch (err) {
     console.log(err);
