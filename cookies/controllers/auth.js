@@ -1,7 +1,8 @@
 import User from "../models/user.js";
+import ResetLink from "../models/resetLink.js";
 import bcrypt from "bcryptjs";
-import sgMail from '@sendgrid/mail';
-import 'dotenv/config';
+import sgMail from "@sendgrid/mail";
+import "dotenv/config";
 
 sgMail.setApiKey(process.env.SENDGRID_KEY);
 
@@ -12,7 +13,7 @@ export const getLogin = (req, res, next) => {
     path: "/login",
     pageTitle: "Login",
     errorMessage: errorMessage,
-    infoMessage: infoMessage
+    infoMessage: infoMessage,
   });
 };
 
@@ -65,11 +66,11 @@ export const postSignup = async (req, res, next) => {
     await user.save();
     const msg = {
       to: email,
-      from: 'hippolyte.leveque@gmail.com',
-      subject: 'Automation test',
-      text: 'Zemmour 2027',
-      html: '<strong>Zemmour Président</strong>',
-    }
+      from: "hippolyte.leveque@gmail.com",
+      subject: "Automation test",
+      text: "Zemmour 2027",
+      html: "<strong>Zemmour Président</strong>",
+    };
     await sgMail.send(msg);
     res.redirect("/login");
   } catch (err) {
@@ -94,18 +95,57 @@ export const postReset = async (req, res, next) => {
       req.flash("error", "Invalid email / password");
       res.redirect("/reset");
     }
+    let resetLink = new ResetLink({ userId: user });
+    await resetLink.save();
     const msg = {
       to: email,
-      from: 'hippolyte.leveque@gmail.com',
-      subject: 'Reset password',
-      text: 'Zemmour 2027',
-      html: '<strong> Reseting your password </strong>',
-    }
+      from: "hippolyte.leveque@gmail.com",
+      subject: "Reset password",
+      text: "Zemmour 2027",
+      html: `<strong> Reseting your password with the following link ${
+        process.env.HOST_URL
+      }/reset-password/${resetLink._id.toString()}</strong>`,
+    };
     await sgMail.send(msg);
-    req.flash("info", "A link to reset your password has been sent to your inbox.")
+    req.flash(
+      "info",
+      "A link to reset your password has been sent to your inbox."
+    );
     res.redirect("/login");
   } catch (err) {
     console.log(err);
   }
-}
+};
 
+export const getResetPassword = async (req, res, next) => {
+  const linkId = req.params.linkId;
+  try {
+    let resetLink = await ResetLink.findById(linkId).populate("userId");
+    if (!resetLink) {
+      res.redirect("/reset-password");
+    }
+    res.render("auth/reset-password", {
+      pageTitle: "Reset Password",
+      path: "/reset",
+      link: resetLink,
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const postResetPassword = async (req, res, next) => {
+  const { password, confirmPassword, userId, linkId } = req.body;
+  try {
+    if (password !== confirmPassword) {
+      res.redirect(`/reset-password/${linkId}`);
+    }
+    let user = await User.findById(userId);
+    const hashedPassword = await bcrypt.hash(password, 12);
+    user.password = hashedPassword;
+    await user.save();
+    res.redirect("/login");
+  } catch (err) {
+    console.log(err);
+  }
+};

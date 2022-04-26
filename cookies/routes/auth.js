@@ -7,7 +7,9 @@ import {
   getSignup,
   postSignup,
   getReset,
-  postReset
+  postReset,
+  getResetPassword,
+  postResetPassword,
 } from "../controllers/auth.js";
 
 const router = express.Router();
@@ -23,6 +25,10 @@ router.get("/signup", getSignup);
 router.post("/signup", postSignup);
 
 router.get("/reset", getReset);
+
+router.get("/reset-password/:linkId", getResetPassword);
+
+router.post("/reset-password", postResetPassword);
 
 router.post("/reset", postReset);
 
