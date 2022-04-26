@@ -6,6 +6,8 @@ import {
   postLogout,
   getSignup,
   postSignup,
+  getReset,
+  postReset
 } from "../controllers/auth.js";
 
 const router = express.Router();
@@ -19,5 +21,9 @@ router.post("/logout", postLogout);
 router.get("/signup", getSignup);
 
 router.post("/signup", postSignup);
+
+router.get("/reset", getReset);
+
+router.post("/reset", postReset);
 
 export default router;
