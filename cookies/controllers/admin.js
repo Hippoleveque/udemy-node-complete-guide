@@ -6,7 +6,7 @@ export const getAddProduct = (req, res, next) => {
     pageTitle: "Add Product",
     path: "/admin/add-product",
     editing: false,
-    errorMessage: null,
+    errorMessage: undefined,
     oldInput: {
       title: "",
       imageUrl: "",
@@ -110,7 +110,7 @@ export const getProducts = async (req, res, next) => {
 
 export const postDeleteProduct = async (req, res, next) => {
   const { user } = req;
-  const { productId } = req.body.productId;
+  const { productId } = req.body;
   try {
     await Product.deleteOne({ _id: productId, userId: user._id }).exec();
     res.redirect("/admin/products");
