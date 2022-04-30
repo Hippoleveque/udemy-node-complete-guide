@@ -2,6 +2,7 @@ import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import sgMail from "@sendgrid/mail";
 import crypto from "crypto";
+import { validationResult } from "express-validator";
 import "dotenv/config";
 
 sgMail.setApiKey(process.env.SENDGRID_KEY);
@@ -44,14 +45,25 @@ export const postLogout = async (req, res, next) => {
 };
 
 export const getSignup = (req, res, next) => {
+  const errorMessage = req.flash("error");
   res.render("auth/signup", {
     path: "/signup",
     pageTitle: "Signup",
+    errorMessage: errorMessage,
   });
 };
 
 export const postSignup = async (req, res, next) => {
   const { email, password, confirmPassword } = req.body;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors.array());
+    return res.status(422).render("auth/signup", {
+      path: "/signup",
+      pageTitle: "Signup",
+      errorMessage: errors.array()[0],
+    });
+  }
   let user = await User.findOne({ email: email }).exec();
   if (user) {
     res.render("auth/signup", {
@@ -67,8 +79,8 @@ export const postSignup = async (req, res, next) => {
       to: email,
       from: "hippolyte.leveque@gmail.com",
       subject: "Automation test",
-      text: "Reset password",
-      html: "<strong>Reset password</strong>",
+      text: "Welcome",
+      html: "<strong>Welcome</strong>",
     };
     await sgMail.send(msg);
     res.redirect("/login");

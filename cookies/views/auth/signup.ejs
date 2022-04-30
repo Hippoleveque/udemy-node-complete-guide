@@ -7,7 +7,12 @@
    <%- include('../includes/navigation.ejs') %>
 
     <main>
-        <form class="login-form" action="/signup" method="POST">
+        <% if (errorMessage) { %> 
+            <div class="user-message user-message--error">
+                <%= errorMessage.msg %>
+            </div>
+        <% } %>
+        <form class="login-form" action="/signup" method="POST" novalidate>
             <div class="form-control">
                 <label for="email">Email</label>
                 <input type="email" name="email" id="email">
