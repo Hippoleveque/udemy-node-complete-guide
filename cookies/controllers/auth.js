@@ -15,6 +15,10 @@ export const getLogin = (req, res, next) => {
     pageTitle: "Login",
     errorMessage: errorMessage,
     infoMessage: infoMessage,
+    oldInput: {
+      email: "",
+      password: "",
+    },
   });
 };
 
@@ -28,17 +32,28 @@ export const postLogin = async (req, res, next) => {
         pageTitle: "Login",
         errorMessage: errors.array()[0].msg,
         infoMessage: "",
+        oldInput: {
+          email,
+          password,
+        },
       });
     }
-    const user = User.findOne({email: email}).exec();
+    const user = User.findOne({ email: email }).exec();
     if (await bcrypt.compare(password, user.password)) {
       req.session.user = user;
       req.session.isLoggedIn = true;
       await req.session.save();
-      res.redirect("/");
+      return res.redirect("/");
     }
-    req.flash("error", "Invalid email / password");
-    res.redirect("/login");
+    return res.status(422).render("auth/login", {
+      path: "/login",
+      pageTitle: "Login",
+      errorMessage: "Invalid email / password",
+      oldInput: {
+        email,
+        password,
+      },
+    });
   } catch (err) {
     console.log(err);
   }
@@ -59,17 +74,27 @@ export const getSignup = (req, res, next) => {
     path: "/signup",
     pageTitle: "Signup",
     errorMessage: errorMessage,
+    oldInput: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 };
 
 export const postSignup = async (req, res, next) => {
-  const { email, password } = req.body;
+  const { email, password, confirmPassword } = req.body;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).render("auth/signup", {
       path: "/signup",
       pageTitle: "Signup",
       errorMessage: errors.array()[0],
+      oldInput: {
+        email,
+        password,
+        confirmPassword,
+      },
     });
   }
   let user = await User.findOne({ email: email }).exec();
@@ -77,6 +102,11 @@ export const postSignup = async (req, res, next) => {
     res.render("auth/signup", {
       path: "/signup",
       pageTitle: "Signup",
+      oldInput: {
+        email,
+        password,
+        confirmPassword,
+      },
     });
   }
   try {
