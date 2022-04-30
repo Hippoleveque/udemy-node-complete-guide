@@ -105,3 +105,6 @@ dist
 
 #.vscode
 .vscode
+
+*environment*
+cookies/dev.env
