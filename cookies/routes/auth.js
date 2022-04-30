@@ -18,7 +18,20 @@ const router = express.Router();
 
 router.get("/login", getLogin);
 
-router.post("/login", postLogin);
+router.post(
+  "/login",
+  [
+    check("email").isEmail().withMessage("Invalid email address."),
+    check("email").custom(async (value, { req }) => {
+      const user = await User.findOne({ email: value }).exec();
+      if (!user) {
+        throw new Error(`There is no user with address: ${value}`);
+      }
+      return true;
+    }),
+  ],
+  postLogin
+);
 
 router.post("/logout", postLogout);
 
@@ -39,9 +52,9 @@ router.post(
       return true;
     }),
     check("email").custom(async (value, { req }) => {
-      const user = await User.findOne({email: value}).exec();
+      const user = await User.findOne({ email: value }).exec();
       if (user) {
-        throw new Error("This user already exists.")
+        throw new Error("This user already exists.");
       }
       return true;
     }),

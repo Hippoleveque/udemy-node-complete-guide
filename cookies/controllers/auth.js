@@ -20,9 +20,17 @@ export const getLogin = (req, res, next) => {
 
 export const postLogin = async (req, res, next) => {
   const { email, password } = req.body;
+  const errors = validationResult(req);
   try {
-    const user = await User.findOne({ email: email }).exec();
-    if (user && (await bcrypt.compare(password, user.password))) {
+    if (!errors.isEmpty()) {
+      return res.status(422).render("auth/login", {
+        path: "/login",
+        pageTitle: "Login",
+        errorMessage: errors.array()[0].msg,
+        infoMessage: "",
+      });
+    }
+    if (await bcrypt.compare(password, user.password)) {
       req.session.user = user;
       req.session.isLoggedIn = true;
       await req.session.save();
