@@ -7,7 +7,7 @@
    <%- include('../includes/navigation.ejs') %>
 
     <main>
-        <% if (errorMessage) { %> 
+        <% if (errorMessage.msg) { %> 
             <div class="user-message user-message--error">
                 <%= errorMessage.msg %>
             </div>
