@@ -57,7 +57,6 @@ export const postSignup = async (req, res, next) => {
     res.render("auth/signup", {
       path: "/signup",
       pageTitle: "Signup",
-      isAuthenticated: isLoggedIn,
     });
   }
   try {
@@ -114,7 +113,7 @@ export const postReset = async (req, res, next) => {
   }
 }
 
-export const getNewPassword = (req, res, next) => {
+export const getNewPassword = async (req, res, next) => {
   const { token } = req.params;
   try {
     const user = await User.findOne({ resetPwdToken : token, resetPwdTokenExpirationDate: {$gt: Date.now()}}).exec();
@@ -125,8 +124,7 @@ export const getNewPassword = (req, res, next) => {
     res.render("auth/new-password", {
       path: `/reset/${token}`,
       pageTitle: "Reset Password",
-      isAuthenticated: isLoggedIn,
-      userId: user._id.toString();
+      userId: user._id.toString()
     })
   } catch (err) {
     console.log(err);
