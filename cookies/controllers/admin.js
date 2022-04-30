@@ -18,10 +18,10 @@ export const getAddProduct = (req, res, next) => {
 
 export const postAddProduct = async (req, res, next) => {
   const { user } = req;
-  const { title, imageUrl, price, description  } = req.body;
+  const { title, imageUrl, price, description } = req.body;
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    res.render("admin/edit-product", {
+    return res.render("admin/edit-product", {
       pageTitle: "Add Product",
       path: "/admin/add-product",
       editing: false,
@@ -43,7 +43,7 @@ export const postAddProduct = async (req, res, next) => {
   });
   try {
     await product.save();
-    res.redirect("/admin/products");
+    return res.redirect("/admin/products");
   } catch (err) {
     console.log(err);
   }
@@ -60,6 +60,7 @@ export const getEditProduct = async (req, res, next) => {
     res.render("admin/edit-product", {
       pageTitle: "Edit Product",
       path: "/admin/edit-product",
+      errorMessage: undefined,
       editing: editMode,
       product: product,
     });
@@ -70,6 +71,7 @@ export const getEditProduct = async (req, res, next) => {
 
 export const postEditProduct = async (req, res, next) => {
   const { user } = req;
+  const errors = validationResult(req);
   const {
     productId,
     title: updatedTitle,
@@ -77,8 +79,22 @@ export const postEditProduct = async (req, res, next) => {
     imageUrl: updatedImageUrl,
     description: updatedDesc,
   } = req.body;
-
   try {
+    if (!errors.isEmpty()) {
+      res.render("admin/edit-product", {
+        pageTitle: "Edit Product",
+        path: "/admin/edit-product",
+        editing: true,
+        errorMessage: errors.array()[0],
+        product: {
+          title: updatedTitle,
+          imageUrl: updatedImageUrl,
+          price: updatedPrice,
+          description: updatedDesc,
+          _id: productId
+        },
+      });
+    }
     const product = await Product.findOne({
       _id: productId,
       userId: user._id,
