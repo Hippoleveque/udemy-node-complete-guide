@@ -1,8 +1,8 @@
 import User from "../models/user.js";
 import bcrypt from "bcryptjs";
-import sgMail from '@sendgrid/mail';
+import sgMail from "@sendgrid/mail";
 import crypto from "crypto";
-import 'dotenv/config';
+import "dotenv/config";
 
 sgMail.setApiKey(process.env.SENDGRID_KEY);
 
@@ -13,7 +13,7 @@ export const getLogin = (req, res, next) => {
     path: "/login",
     pageTitle: "Login",
     errorMessage: errorMessage,
-    infoMessage: infoMessage
+    infoMessage: infoMessage,
   });
 };
 
@@ -65,11 +65,11 @@ export const postSignup = async (req, res, next) => {
     await user.save();
     const msg = {
       to: email,
-      from: 'hippolyte.leveque@gmail.com',
-      subject: 'Automation test',
-      text: 'Reset password',
-      html: '<strong>Reset password</strong>',
-    }
+      from: "hippolyte.leveque@gmail.com",
+      subject: "Automation test",
+      text: "Reset password",
+      html: "<strong>Reset password</strong>",
+    };
     await sgMail.send(msg);
     res.redirect("/login");
   } catch (err) {
@@ -100,23 +100,29 @@ export const postReset = async (req, res, next) => {
     user.resetPwdTokenExpirationDate = Date.now() + 3600000;
     const msg = {
       to: email,
-      from: 'hippolyte.leveque@gmail.com',
-      subject: 'Reset password',
-      text: 'Reset password',
-      html: `Click this <a href="${process.env.HOST_URL}/reset/${token}">link </a> for resetting your password.`
-    }
+      from: "hippolyte.leveque@gmail.com",
+      subject: "Reset password",
+      text: "Reset password",
+      html: `Click this <a href="${process.env.HOST_URL}/reset/${token}">link </a> for resetting your password.`,
+    };
     await Promise.all([user.save(), sgMail.send(msg)]);
-    req.flash("info", "A link to reset your password has been sent to your inbox.")
+    req.flash(
+      "info",
+      "A link to reset your password has been sent to your inbox."
+    );
     res.redirect("/login");
   } catch (err) {
     console.log(err);
   }
-}
+};
 
 export const getNewPassword = async (req, res, next) => {
   const { token } = req.params;
   try {
-    const user = await User.findOne({ resetPwdToken : token, resetPwdTokenExpirationDate: {$gt: Date.now()}}).exec();
+    const user = await User.findOne({
+      resetPwdToken: token,
+      resetPwdTokenExpirationDate: { $gt: Date.now() },
+    }).exec();
     if (!user) {
       req.flash("error", "The link has expired.");
       res.redirect("/reset");
@@ -124,10 +130,29 @@ export const getNewPassword = async (req, res, next) => {
     res.render("auth/new-password", {
       path: `/reset/${token}`,
       pageTitle: "Reset Password",
-      userId: user._id.toString()
-    })
+      userId: user._id.toString(),
+      resetPwdToken: token,
+    });
   } catch (err) {
     console.log(err);
   }
+};
 
-}
+export const postNewPassword = async (req, res, next) => {
+  const { userId, password, resetPwdToken } = req.body;
+  try {
+    const user = await User.findOne({
+      _id: userId,
+      resetPwdToken: resetPwdToken,
+      resetPwdTokenExpirationDate: { $gt: Date.now() },
+    }).exec();
+    const hashedPassword = await bcrypt.hash(password, 12);
+    user.password = hashedPassword;
+    user.resetPwdToken = undefined;
+    user.resetPwdTokenExpirationDate = undefined;
+    await user.save();
+    res.redirect("/login");
+  } catch (err) {
+    console.log(err);
+  }
+};
