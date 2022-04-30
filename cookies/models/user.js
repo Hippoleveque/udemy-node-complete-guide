@@ -10,6 +10,8 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  resetPwdToken: String,
+  resetPwdTokenExpirationDate: Date,
   cart: {
     items: [
       {
