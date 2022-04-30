@@ -106,7 +106,7 @@ export const postReset = async (req, res, next) => {
       text: 'Reset password',
       html: `Click this <a href="${process.env.HOST_URL}/reset/${token}">link </a> for resetting your password.`
     }
-    await sgMail.send(msg);
+    await Promise.all([user.save(), sgMail.send(msg)]);
     req.flash("info", "A link to reset your password has been sent to your inbox.")
     res.redirect("/login");
   } catch (err) {
