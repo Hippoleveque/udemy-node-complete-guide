@@ -2,7 +2,7 @@ import Product from "../models/product.js";
 import { validationResult } from "express-validator";
 
 export const getAddProduct = (req, res, next) => {
-  res.render("admin/edit-product", {
+  return res.render("admin/edit-product", {
     pageTitle: "Add Product",
     path: "/admin/add-product",
     editing: false,
@@ -81,7 +81,7 @@ export const postEditProduct = async (req, res, next) => {
   } = req.body;
   try {
     if (!errors.isEmpty()) {
-      res.render("admin/edit-product", {
+      return res.render("admin/edit-product", {
         pageTitle: "Edit Product",
         path: "/admin/edit-product",
         editing: true,
@@ -104,7 +104,7 @@ export const postEditProduct = async (req, res, next) => {
     product.imageUrl = updatedImageUrl;
     product.title = updatedTitle;
     await product.save();
-    res.redirect("/admin/products");
+    return res.redirect("/admin/products");
   } catch (err) {
     console.log(err);
   }
@@ -114,7 +114,7 @@ export const getProducts = async (req, res, next) => {
   const { user } = req;
   try {
     const products = await Product.find({ userId: user._id }).exec();
-    res.render("admin/products", {
+    return res.render("admin/products", {
       prods: products,
       pageTitle: "Admin Products",
       path: "/admin/products",
@@ -129,7 +129,7 @@ export const postDeleteProduct = async (req, res, next) => {
   const { productId } = req.body;
   try {
     await Product.deleteOne({ _id: productId, userId: user._id }).exec();
-    res.redirect("/admin/products");
+    return res.redirect("/admin/products");
   } catch (err) {
     console.log(err);
   }
