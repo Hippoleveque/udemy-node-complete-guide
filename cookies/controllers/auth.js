@@ -114,3 +114,22 @@ export const postReset = async (req, res, next) => {
   }
 }
 
+export const getNewPassword = (req, res, next) => {
+  const { token } = req.params;
+  try {
+    const user = await User.findOne({ resetPwdToken : token, resetPwdTokenExpirationDate: {$gt: Date.now()}}).exec();
+    if (!user) {
+      req.flash("error", "The link has expired.");
+      res.redirect("/reset");
+    }
+    res.render("auth/new-password", {
+      path: `/reset/${token}`,
+      pageTitle: "Reset Password",
+      isAuthenticated: isLoggedIn,
+      userId: user._id.toString();
+    })
+  } catch (err) {
+    console.log(err);
+  }
+
+}
