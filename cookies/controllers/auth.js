@@ -30,6 +30,7 @@ export const postLogin = async (req, res, next) => {
         infoMessage: "",
       });
     }
+    const user = User.findOne({email: email}).exec();
     if (await bcrypt.compare(password, user.password)) {
       req.session.user = user;
       req.session.isLoggedIn = true;
