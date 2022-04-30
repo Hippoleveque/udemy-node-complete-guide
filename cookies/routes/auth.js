@@ -21,14 +21,17 @@ router.get("/login", getLogin);
 router.post(
   "/login",
   [
-    check("email").isEmail().withMessage("Invalid email address."),
-    check("email").custom(async (value, { req }) => {
-      const user = await User.findOne({ email: value }).exec();
-      if (!user) {
-        throw new Error(`There is no user with address: ${value}`);
-      }
-      return true;
-    }),
+    check("email")
+      .isEmail()
+      .withMessage("Invalid email address.")
+      .normalizeEmail()
+      .custom(async (value, { req }) => {
+        const user = await User.findOne({ email: value }).exec();
+        if (!user) {
+          throw new Error(`There is no user with address: ${value}`);
+        }
+        return true;
+      }),
   ],
   postLogin
 );
@@ -40,7 +43,17 @@ router.get("/signup", getSignup);
 router.post(
   "/signup",
   [
-    check("email").isEmail().withMessage("Please enter a valid email."),
+    check("email")
+      .isEmail()
+      .withMessage("Please enter a valid email.")
+      .custom(async (value, { req }) => {
+        const user = await User.findOne({ email: value }).exec();
+        if (user) {
+          throw new Error("This user already exists.");
+        }
+        return true;
+      })
+      .normalizeEmail(),
     check(
       "password",
       "Please enter a password at least 5 characters long."
@@ -48,13 +61,6 @@ router.post(
     check("confirmPassword").custom((value, { req }) => {
       if (value !== req.body.password) {
         throw new Error("Passwords have to match.");
-      }
-      return true;
-    }),
-    check("email").custom(async (value, { req }) => {
-      const user = await User.findOne({ email: value }).exec();
-      if (user) {
-        throw new Error("This user already exists.");
       }
       return true;
     }),

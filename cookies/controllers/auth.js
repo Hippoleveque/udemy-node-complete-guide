@@ -10,7 +10,7 @@ sgMail.setApiKey(process.env.SENDGRID_KEY);
 export const getLogin = (req, res, next) => {
   const errorMessage = req.flash("error");
   const infoMessage = req.flash("info");
-  res.render("auth/login", {
+  return res.render("auth/login", {
     path: "/login",
     pageTitle: "Login",
     errorMessage: errorMessage,
@@ -38,7 +38,7 @@ export const postLogin = async (req, res, next) => {
         },
       });
     }
-    const user = User.findOne({ email: email }).exec();
+    const user = await User.findOne({ email: email }).exec();
     if (await bcrypt.compare(password, user.password)) {
       req.session.user = user;
       req.session.isLoggedIn = true;
@@ -98,17 +98,6 @@ export const postSignup = async (req, res, next) => {
     });
   }
   let user = await User.findOne({ email: email }).exec();
-  if (user) {
-    res.render("auth/signup", {
-      path: "/signup",
-      pageTitle: "Signup",
-      oldInput: {
-        email,
-        password,
-        confirmPassword,
-      },
-    });
-  }
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
     user = User({ email, password: hashedPassword, cart: { items: [] } });
