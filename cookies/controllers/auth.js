@@ -2,6 +2,7 @@ import User from "../models/user.js";
 import bcrypt from "bcryptjs";
 import sgMail from "@sendgrid/mail";
 import crypto from "crypto";
+import { validationResult } from "express-validator";
 import "dotenv/config";
 
 sgMail.setApiKey(process.env.SENDGRID_KEY);
@@ -9,26 +10,50 @@ sgMail.setApiKey(process.env.SENDGRID_KEY);
 export const getLogin = (req, res, next) => {
   const errorMessage = req.flash("error");
   const infoMessage = req.flash("info");
-  res.render("auth/login", {
+  return res.render("auth/login", {
     path: "/login",
     pageTitle: "Login",
     errorMessage: errorMessage,
     infoMessage: infoMessage,
+    oldInput: {
+      email: "",
+      password: "",
+    },
   });
 };
 
 export const postLogin = async (req, res, next) => {
   const { email, password } = req.body;
+  const errors = validationResult(req);
   try {
+    if (!errors.isEmpty()) {
+      return res.status(422).render("auth/login", {
+        path: "/login",
+        pageTitle: "Login",
+        errorMessage: errors.array()[0].msg,
+        infoMessage: "",
+        oldInput: {
+          email,
+          password,
+        },
+      });
+    }
     const user = await User.findOne({ email: email }).exec();
-    if (user && (await bcrypt.compare(password, user.password))) {
+    if (await bcrypt.compare(password, user.password)) {
       req.session.user = user;
       req.session.isLoggedIn = true;
       await req.session.save();
-      res.redirect("/");
+      return res.redirect("/");
     }
-    req.flash("error", "Invalid email / password");
-    res.redirect("/login");
+    return res.status(422).render("auth/login", {
+      path: "/login",
+      pageTitle: "Login",
+      errorMessage: "Invalid email / password",
+      oldInput: {
+        email,
+        password,
+      },
+    });
   } catch (err) {
     console.log(err);
   }
@@ -44,21 +69,35 @@ export const postLogout = async (req, res, next) => {
 };
 
 export const getSignup = (req, res, next) => {
+  const errorMessage = req.flash("error");
   res.render("auth/signup", {
     path: "/signup",
     pageTitle: "Signup",
+    errorMessage: errorMessage,
+    oldInput: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 };
 
 export const postSignup = async (req, res, next) => {
   const { email, password, confirmPassword } = req.body;
-  let user = await User.findOne({ email: email }).exec();
-  if (user) {
-    res.render("auth/signup", {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).render("auth/signup", {
       path: "/signup",
       pageTitle: "Signup",
+      errorMessage: errors.array()[0],
+      oldInput: {
+        email,
+        password,
+        confirmPassword,
+      },
     });
   }
+  let user = await User.findOne({ email: email }).exec();
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
     user = User({ email, password: hashedPassword, cart: { items: [] } });
@@ -67,8 +106,8 @@ export const postSignup = async (req, res, next) => {
       to: email,
       from: "hippolyte.leveque@gmail.com",
       subject: "Automation test",
-      text: "Reset password",
-      html: "<strong>Reset password</strong>",
+      text: "Welcome",
+      html: "<strong>Welcome</strong>",
     };
     await sgMail.send(msg);
     res.redirect("/login");
