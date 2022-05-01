@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 
+import PDFDocument from "pdfkit";
+
 import Product from "../models/product.js";
 import Order from "../models/order.js";
 
@@ -145,24 +147,24 @@ export const getInvoice = async (req, res, next) => {
       error = new Error("Unauthorized.");
       return next(error);
     }
-    // fs.readFile(invoiceFilePath, (err, data) => {
-    //   if (err) {
-    //     return next(err);
-    //   }
-    //   res.setHeader("Content-Type", "application/pdf");
-    //   res.setHeader(
-    //     "Content-Disposition",
-    //     `inline; filename="${invoiceFileName}"`
-    //   );
-    //   return res.send(data);
-    // });
-    const fileStream = fs.createReadStream(invoiceFilePath);
+    const pdf = new PDFDocument();
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
       `inline; filename="${invoiceFileName}"`
     );
-    fileStream.pipe(res);
+    pdf.pipe(fs.createWriteStream(invoiceFilePath));
+    pdf.pipe(res);
+    pdf.fontSize(24).text("Invoice");
+    pdf.text("-------------------")
+    let totalPrice = 0;
+    order.items.forEach(prod => {
+      totalPrice += prod.quantity * prod.product.price;
+      pdf.fontSize(14).text(`${prod.product.title}: ${prod.quantity} x $${prod.product.price}`);
+    })
+    pdf.text("-------------------");
+    pdf.fontSize(18).text(`Total price: $${totalPrice}`)
+    return pdf.end();
   } catch (err) {
     console.log(err);
     const error = new Error(err);
@@ -170,3 +172,4 @@ export const getInvoice = async (req, res, next) => {
     return next(error);
   }
 };
+

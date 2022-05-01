@@ -1,5 +1,6 @@
 import Product from "../models/product.js";
 import { validationResult } from "express-validator";
+import { deleteFile } from "../util/path.js";
 
 export const getAddProduct = (req, res, next) => {
   return res.render("admin/edit-product", {
@@ -136,6 +137,7 @@ export const postEditProduct = async (req, res, next) => {
     product.description = updatedDesc;
     product.price = updatedPrice;
     if (image) {
+      deleteFile(product.imageUrl);
       product.imageUrl = image.path;
     }
     product.title = updatedTitle;
@@ -170,7 +172,19 @@ export const postDeleteProduct = async (req, res, next) => {
   const { user } = req;
   const { productId } = req.body;
   try {
-    await Product.deleteOne({ _id: productId, userId: user._id }).exec();
+    const product = await Product.findOne({
+      _id: productId,
+      userId: user._id,
+    }).exec();
+    if (!product) {
+      const error = new Error("Product Not Found");
+      error.httpStatusCode = 500;
+      return next(error);
+    }
+    await Promise.all([
+      Product.deleteOne({ _id: product._id }).exec(),
+      deleteFile(product.imageUrl),
+    ]);
     return res.redirect("/admin/products");
   } catch (err) {
     console.log(err);
