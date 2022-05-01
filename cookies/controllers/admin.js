@@ -43,7 +43,6 @@ export const postAddProduct = async (req, res, next) => {
       errorMessage: errors.array()[0],
       product: {
         title,
-        imageUrl,
         price,
         description,
       },
