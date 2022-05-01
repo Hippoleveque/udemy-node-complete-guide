@@ -72,6 +72,7 @@ app.use(authRoutes);
 app.use("/500", get500);
 
 app.use(get404);
+
 app.use((error, req, res, next) => {
   return res.redirect("/500");
 });
