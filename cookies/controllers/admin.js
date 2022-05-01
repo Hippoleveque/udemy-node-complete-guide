@@ -183,7 +183,7 @@ export const getProducts = async (req, res, next) => {
 
 export const postDeleteProduct = async (req, res, next) => {
   const { user } = req;
-  const { productId } = req.body;
+  const { productId } = req.params;
   try {
     const product = await Product.findOne({
       _id: productId,
@@ -198,11 +198,9 @@ export const postDeleteProduct = async (req, res, next) => {
       Product.deleteOne({ _id: product._id }).exec(),
       deleteFile(product.imageUrl),
     ]);
-    return res.redirect("/admin/products");
+    return res.status(200).json({message: "Success"})
   } catch (err) {
     console.log(err);
-    const error = new Error(err);
-    error.httpStatusCode = 500;
-    return next(error);
+    return res.status(500).json({message: "Failed to deleted the product."})
   }
 };

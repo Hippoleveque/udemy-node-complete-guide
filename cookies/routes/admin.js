@@ -47,6 +47,6 @@ router.post(
   postEditProduct
 );
 
-router.post("/delete-product", isAuth, postDeleteProduct);
+router.delete("/delete-product/:productId", isAuth, postDeleteProduct);
 
 export default router;
