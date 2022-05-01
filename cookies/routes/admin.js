@@ -24,7 +24,6 @@ router.post(
     check("title")
       .isLength({ max: 15 })
       .withMessage("Title must not exceed 15 characters."),
-    check("imageUrl").isURL().withMessage("ImageUrl must be a valid url."),
     check("description")
       .isLength({ max: 150 })
       .withMessage("Description must not exceed 150 characters."),

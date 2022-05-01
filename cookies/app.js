@@ -7,8 +7,17 @@ import { fileURLToPath } from "url";
 import MongoSession from "connect-mongodb-session";
 import csrf from "csurf";
 import flash from "connect-flash";
+import multer from "multer";
 
 const MongoDBStore = MongoSession(session);
+const filteStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().toISOString() + "_" + file.originalname);
+  },
+});
 
 import User from "./models/user.js";
 
@@ -31,6 +40,7 @@ import shopRoutes from "./routes/shop.js";
 import authRoutes from "./routes/auth.js";
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(multer({ storage: filteStorage }).single("image"));
 app.use(
   session({
     secret: "secret",
