@@ -1,6 +1,7 @@
 import Product from "../models/product.js";
 import { validationResult } from "express-validator";
 import { deleteFile } from "../util/path.js";
+const ITEMS_PER_PAGE = 2;
 
 export const getAddProduct = (req, res, next) => {
   return res.render("admin/edit-product", {
@@ -153,12 +154,24 @@ export const postEditProduct = async (req, res, next) => {
 
 export const getProducts = async (req, res, next) => {
   const { user } = req;
+  const page = +req.query.page || 1;
   try {
-    const products = await Product.find({ userId: user._id }).exec();
+    const totalItems = await Product.find().countDocuments();
+    const products = await Product.find()
+      .skip((page - 1) * ITEMS_PER_PAGE)
+      .limit(ITEMS_PER_PAGE)
+      .exec();
     return res.render("admin/products", {
       prods: products,
       pageTitle: "Admin Products",
       path: "/admin/products",
+      totalProducts: totalItems,
+      currentPage: page,
+      hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+      hasPreviousPage: page > 1,
+      nextPage: page + 1,
+      previousPage: page - 1,
+      lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
     });
   } catch (err) {
     console.log(err);
