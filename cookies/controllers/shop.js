@@ -142,20 +142,27 @@ export const getInvoice = async (req, res, next) => {
       error = new Error("No order found.");
       return next(error);
     } else if (order.user.userId.toString() !== user._id.toString()) {
-      error = new Error("Unauthorized.")
+      error = new Error("Unauthorized.");
       return next(error);
     }
-    fs.readFile(invoiceFilePath, (err, data) => {
-      if (err) {
-        return next(err);
-      }
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader(
-        "Content-Disposition",
-        `inline; filename="${invoiceFileName}"`
-      );
-      return res.send(data);
-    });
+    // fs.readFile(invoiceFilePath, (err, data) => {
+    //   if (err) {
+    //     return next(err);
+    //   }
+    //   res.setHeader("Content-Type", "application/pdf");
+    //   res.setHeader(
+    //     "Content-Disposition",
+    //     `inline; filename="${invoiceFileName}"`
+    //   );
+    //   return res.send(data);
+    // });
+    const fileStream = fs.createReadStream(invoiceFilePath);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${invoiceFileName}"`
+    );
+    fileStream.pipe(res);
   } catch (err) {
     console.log(err);
     const error = new Error(err);
