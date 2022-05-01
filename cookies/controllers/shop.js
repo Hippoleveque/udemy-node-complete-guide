@@ -1,5 +1,7 @@
+import fs from "fs";
+import path from "path";
+
 import Product from "../models/product.js";
-import User from "../models/user.js";
 import Order from "../models/order.js";
 
 export const getProducts = async (req, res, next) => {
@@ -119,6 +121,40 @@ export const getOrders = async (req, res, next) => {
       path: "/orders",
       pageTitle: "Your Orders",
       orders: orders,
+    });
+  } catch (err) {
+    console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+export const getInvoice = async (req, res, next) => {
+  const { orderId } = req.params;
+  const { user } = req;
+  const invoiceFileName = `invoice-${orderId}.pdf`;
+  const invoiceFilePath = path.join("data", "invoices", invoiceFileName);
+  try {
+    const order = await Order.findById(orderId).exec();
+    let error;
+    if (!order) {
+      error = new Error("No order found.");
+      return next(error);
+    } else if (order.user.userId.toString() !== user._id.toString()) {
+      error = new Error("Unauthorized.")
+      return next(error);
+    }
+    fs.readFile(invoiceFilePath, (err, data) => {
+      if (err) {
+        return next(err);
+      }
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `inline; filename="${invoiceFileName}"`
+      );
+      return res.send(data);
     });
   } catch (err) {
     console.log(err);
