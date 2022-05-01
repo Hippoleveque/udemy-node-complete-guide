@@ -49,6 +49,7 @@ export const postLogin = async (req, res, next) => {
       path: "/login",
       pageTitle: "Login",
       errorMessage: "Invalid email / password",
+      infoMessage: "",
       oldInput: {
         email,
         password,

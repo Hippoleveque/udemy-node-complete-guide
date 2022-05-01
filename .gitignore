@@ -108,3 +108,5 @@ dist
 
 *environment*
 cookies/dev.env
+cookies/app.js
+*.png

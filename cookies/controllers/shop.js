@@ -1,5 +1,9 @@
+import fs from "fs";
+import path from "path";
+
+import PDFDocument from "pdfkit";
+
 import Product from "../models/product.js";
-import User from "../models/user.js";
 import Order from "../models/order.js";
 
 export const getProducts = async (req, res, next) => {
@@ -127,3 +131,45 @@ export const getOrders = async (req, res, next) => {
     return next(error);
   }
 };
+
+export const getInvoice = async (req, res, next) => {
+  const { orderId } = req.params;
+  const { user } = req;
+  const invoiceFileName = `invoice-${orderId}.pdf`;
+  const invoiceFilePath = path.join("data", "invoices", invoiceFileName);
+  try {
+    const order = await Order.findById(orderId).exec();
+    let error;
+    if (!order) {
+      error = new Error("No order found.");
+      return next(error);
+    } else if (order.user.userId.toString() !== user._id.toString()) {
+      error = new Error("Unauthorized.");
+      return next(error);
+    }
+    const pdf = new PDFDocument();
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="${invoiceFileName}"`
+    );
+    pdf.pipe(fs.createWriteStream(invoiceFilePath));
+    pdf.pipe(res);
+    pdf.fontSize(24).text("Invoice");
+    pdf.text("-------------------")
+    let totalPrice = 0;
+    order.items.forEach(prod => {
+      totalPrice += prod.quantity * prod.product.price;
+      pdf.fontSize(14).text(`${prod.product.title}: ${prod.quantity} x $${prod.product.price}`);
+    })
+    pdf.text("-------------------");
+    pdf.fontSize(18).text(`Total price: $${totalPrice}`)
+    return pdf.end();
+  } catch (err) {
+    console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
