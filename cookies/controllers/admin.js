@@ -116,6 +116,20 @@ export const postEditProduct = async (req, res, next) => {
         },
       });
     }
+    if (req.badImageType) {
+      return res.render("admin/edit-product", {
+        pageTitle: "Edit Product",
+        path: "/admin/edit-product",
+        editing: true,
+        errorMessage: { msg: "Image must be a valid image file." },
+        product: {
+          title: updatedTitle,
+          price: updatedPrice,
+          description: updatedDesc,
+          _id: productId,
+        },
+      });
+    }
     const product = await Product.findOne({
       _id: productId,
       userId: user._id,
