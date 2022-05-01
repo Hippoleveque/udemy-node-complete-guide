@@ -13,7 +13,7 @@ const MongoDBStore = MongoSession(session);
 
 import User from "./models/user.js";
 
-import { get404 } from "./controllers/error.js";
+import { get404, get500 } from "./controllers/error.js";
 
 const MONGO_URL = "mongodb://localhost:27017/shopCookies";
 
@@ -70,6 +70,7 @@ app.use((req, res, next) => {
 app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
+app.use("/500", get500);
 
 app.use(get404);
 

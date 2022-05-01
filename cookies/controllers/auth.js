@@ -56,6 +56,7 @@ export const postLogin = async (req, res, next) => {
     });
   } catch (err) {
     console.log(err);
+    return res.redirect("/500");
   }
 };
 
@@ -70,7 +71,7 @@ export const postLogout = async (req, res, next) => {
 
 export const getSignup = (req, res, next) => {
   const errorMessage = req.flash("error");
-  res.render("auth/signup", {
+  return res.render("auth/signup", {
     path: "/signup",
     pageTitle: "Signup",
     errorMessage: errorMessage,
@@ -110,15 +111,16 @@ export const postSignup = async (req, res, next) => {
       html: "<strong>Welcome</strong>",
     };
     await sgMail.send(msg);
-    res.redirect("/login");
+    return res.redirect("/login");
   } catch (err) {
     console.log(err);
+    return res.redirect("/500");
   }
 };
 
 export const getReset = (req, res, next) => {
   const errorMessage = req.flash("error");
-  res.render("auth/reset", {
+  return res.render("auth/reset", {
     path: "/reset",
     pageTitle: "Reset Password",
     errorMessage: errorMessage,
@@ -133,7 +135,7 @@ export const postReset = async (req, res, next) => {
     let user = await User.findOne({ email: email }).exec();
     if (!user) {
       req.flash("error", "Invalid email / password");
-      res.redirect("/reset");
+      return res.redirect("/reset");
     }
     user.resetPwdToken = token;
     user.resetPwdTokenExpirationDate = Date.now() + 3600000;
@@ -152,6 +154,7 @@ export const postReset = async (req, res, next) => {
     res.redirect("/login");
   } catch (err) {
     console.log(err);
+    return res.redirect("/500");
   }
 };
 
@@ -164,9 +167,9 @@ export const getNewPassword = async (req, res, next) => {
     }).exec();
     if (!user) {
       req.flash("error", "The link has expired.");
-      res.redirect("/reset");
+      return res.redirect("/reset");
     }
-    res.render("auth/new-password", {
+    return res.render("auth/new-password", {
       path: `/reset/${token}`,
       pageTitle: "Reset Password",
       userId: user._id.toString(),
@@ -174,6 +177,7 @@ export const getNewPassword = async (req, res, next) => {
     });
   } catch (err) {
     console.log(err);
+    return res.redirect("/500");
   }
 };
 
@@ -193,5 +197,6 @@ export const postNewPassword = async (req, res, next) => {
     res.redirect("/login");
   } catch (err) {
     console.log(err);
+    return res.redirect("/500");
   }
 };
