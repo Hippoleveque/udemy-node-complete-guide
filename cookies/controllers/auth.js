@@ -56,7 +56,9 @@ export const postLogin = async (req, res, next) => {
     });
   } catch (err) {
     console.log(err);
-    return res.redirect("/500");
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
@@ -114,7 +116,9 @@ export const postSignup = async (req, res, next) => {
     return res.redirect("/login");
   } catch (err) {
     console.log(err);
-    return res.redirect("/500");
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
@@ -154,7 +158,9 @@ export const postReset = async (req, res, next) => {
     res.redirect("/login");
   } catch (err) {
     console.log(err);
-    return res.redirect("/500");
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
@@ -177,7 +183,9 @@ export const getNewPassword = async (req, res, next) => {
     });
   } catch (err) {
     console.log(err);
-    return res.redirect("/500");
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
@@ -197,6 +205,8 @@ export const postNewPassword = async (req, res, next) => {
     res.redirect("/login");
   } catch (err) {
     console.log(err);
-    return res.redirect("/500");
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };

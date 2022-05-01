@@ -10,7 +10,6 @@ import flash from "connect-flash";
 
 const MongoDBStore = MongoSession(session);
 
-
 import User from "./models/user.js";
 
 import { get404, get500 } from "./controllers/error.js";
@@ -73,6 +72,9 @@ app.use(authRoutes);
 app.use("/500", get500);
 
 app.use(get404);
+app.use((error, req, res, next) => {
+  return res.redirect("/500");
+});
 
 const main = async () => {
   try {
