@@ -6,13 +6,27 @@ import PDFDocument from "pdfkit";
 import Product from "../models/product.js";
 import Order from "../models/order.js";
 
+const ITEMS_PER_PAGE = 2;
+
 export const getProducts = async (req, res, next) => {
+  const page = +req.query.page || 1;
   try {
-    const products = await Product.find().exec();
+    const totalItems = await Product.find().countDocuments();
+    const products = await Product.find()
+      .skip((page - 1) * ITEMS_PER_PAGE)
+      .limit(ITEMS_PER_PAGE)
+      .exec();
     return res.render("shop/product-list", {
       prods: products,
       pageTitle: "All Products",
       path: "/products",
+      totalProducts: totalItems,
+      currentPage: page,
+      hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+      hasPreviousPage: page > 1,
+      nextPage: page + 1,
+      previousPage: page - 1,
+      lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
     });
   } catch (err) {
     console.log(err);
@@ -40,12 +54,24 @@ export const getProduct = async (req, res, next) => {
 };
 
 export const getIndex = async (req, res, next) => {
+  const page = +req.query.page || 1;
   try {
-    const products = await Product.find().exec();
+    const totalItems = await Product.find().countDocuments();
+    const products = await Product.find()
+      .skip((page - 1) * ITEMS_PER_PAGE)
+      .limit(ITEMS_PER_PAGE)
+      .exec();
     return res.render("shop/index", {
       prods: products,
       pageTitle: "Shop",
       path: "/",
+      totalProducts: totalItems,
+      currentPage: page,
+      hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+      hasPreviousPage: page > 1,
+      nextPage: page + 1,
+      previousPage: page - 1,
+      lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
     });
   } catch (err) {
     console.log(err);
@@ -156,14 +182,18 @@ export const getInvoice = async (req, res, next) => {
     pdf.pipe(fs.createWriteStream(invoiceFilePath));
     pdf.pipe(res);
     pdf.fontSize(24).text("Invoice");
-    pdf.text("-------------------")
-    let totalPrice = 0;
-    order.items.forEach(prod => {
-      totalPrice += prod.quantity * prod.product.price;
-      pdf.fontSize(14).text(`${prod.product.title}: ${prod.quantity} x $${prod.product.price}`);
-    })
     pdf.text("-------------------");
-    pdf.fontSize(18).text(`Total price: $${totalPrice}`)
+    let totalPrice = 0;
+    order.items.forEach((prod) => {
+      totalPrice += prod.quantity * prod.product.price;
+      pdf
+        .fontSize(14)
+        .text(
+          `${prod.product.title}: ${prod.quantity} x $${prod.product.price}`
+        );
+    });
+    pdf.text("-------------------");
+    pdf.fontSize(18).text(`Total price: $${totalPrice}`);
     return pdf.end();
   } catch (err) {
     console.log(err);
@@ -172,4 +202,3 @@ export const getInvoice = async (req, res, next) => {
     return next(error);
   }
 };
-
