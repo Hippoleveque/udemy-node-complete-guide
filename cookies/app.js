@@ -10,7 +10,7 @@ import flash from "connect-flash";
 import multer from "multer";
 
 const MongoDBStore = MongoSession(session);
-const filteStorage = multer.diskStorage({
+const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "./images");
   },
@@ -18,6 +18,14 @@ const filteStorage = multer.diskStorage({
     cb(null, new Date().toISOString() + "_" + file.originalname);
   },
 });
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+}
 
 import User from "./models/user.js";
 
@@ -40,7 +48,7 @@ import shopRoutes from "./routes/shop.js";
 import authRoutes from "./routes/auth.js";
 
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(multer({ storage: filteStorage }).single("image"));
+app.use(multer({ storage: fileStorage, fileFilter }).single("image"));
 app.use(
   session({
     secret: "secret",
