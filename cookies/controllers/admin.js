@@ -18,7 +18,22 @@ export const getAddProduct = (req, res, next) => {
 
 export const postAddProduct = async (req, res, next) => {
   const { user } = req;
-  const { title, imageUrl, price, description } = req.body;
+  const { title, price, description } = req.body;
+  const image = req.file;
+  if (!image) {
+    return res.render("admin/edit-product", {
+      pageTitle: "Add Product",
+      path: "/admin/add-product",
+      editing: false,
+      errorMessage: "Image must be a valid image file.",
+      product: {
+        title,
+        imageUrl,
+        price,
+        description,
+      },
+    });
+  }
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.render("admin/edit-product", {
@@ -34,6 +49,7 @@ export const postAddProduct = async (req, res, next) => {
       },
     });
   }
+  const imageUrl = image.path;
   const product = new Product({
     title,
     price,
@@ -82,9 +98,9 @@ export const postEditProduct = async (req, res, next) => {
     productId,
     title: updatedTitle,
     price: updatedPrice,
-    imageUrl: updatedImageUrl,
     description: updatedDesc,
   } = req.body;
+  const image = req.file;
   try {
     if (!errors.isEmpty()) {
       return res.render("admin/edit-product", {
@@ -94,7 +110,6 @@ export const postEditProduct = async (req, res, next) => {
         errorMessage: errors.array()[0],
         product: {
           title: updatedTitle,
-          imageUrl: updatedImageUrl,
           price: updatedPrice,
           description: updatedDesc,
           _id: productId,
@@ -107,7 +122,9 @@ export const postEditProduct = async (req, res, next) => {
     }).exec();
     product.description = updatedDesc;
     product.price = updatedPrice;
-    product.imageUrl = updatedImageUrl;
+    if (image) {
+      product.imageUrl = image.path;
+    }
     product.title = updatedTitle;
     await product.save();
     return res.redirect("/admin/products");
