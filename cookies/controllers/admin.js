@@ -46,6 +46,9 @@ export const postAddProduct = async (req, res, next) => {
     return res.redirect("/admin/products");
   } catch (err) {
     console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
@@ -57,7 +60,7 @@ export const getEditProduct = async (req, res, next) => {
   const prodId = req.params.productId;
   try {
     const product = await Product.findById(prodId).exec();
-    res.render("admin/edit-product", {
+    return res.render("admin/edit-product", {
       pageTitle: "Edit Product",
       path: "/admin/edit-product",
       errorMessage: undefined,
@@ -66,6 +69,9 @@ export const getEditProduct = async (req, res, next) => {
     });
   } catch (err) {
     console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
@@ -91,7 +97,7 @@ export const postEditProduct = async (req, res, next) => {
           imageUrl: updatedImageUrl,
           price: updatedPrice,
           description: updatedDesc,
-          _id: productId
+          _id: productId,
         },
       });
     }
@@ -107,6 +113,9 @@ export const postEditProduct = async (req, res, next) => {
     return res.redirect("/admin/products");
   } catch (err) {
     console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
@@ -121,6 +130,9 @@ export const getProducts = async (req, res, next) => {
     });
   } catch (err) {
     console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
@@ -132,5 +144,8 @@ export const postDeleteProduct = async (req, res, next) => {
     return res.redirect("/admin/products");
   } catch (err) {
     console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
