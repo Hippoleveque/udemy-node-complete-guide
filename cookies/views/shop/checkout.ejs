@@ -16,9 +16,23 @@
                 </ul>
                 <div class="centered">
                     <h2>Total : <%= totalPrice %></h2>
+                    <button class="btn" id="orderBtn">
+                        Payment
+                    </button>
+                    <script src="https://js.stripe.com/v3/"></script>
+                    <script>
+                        console.log("bonjour")
+                        var stripe = Stripe('pk_test_51Kv7uCHci9JYZ95C4eCgYgJk30jjdaRQWa2geRAHAfBIMiHQ8fmRk7OWR3LiK6phOVr7xKl5MEFX1r8rwbnbsHEj005t0WYdzv');
+                        var orderBtn = document.getElementById("orderBtn");
+                        orderBtn.addEventListener("click", () => {
+                            stripe.redirectToCheckout({ sessionId: "<%= sessionId %>" });
+                        })
+                    </script>
+                    
                 </div>
             <% } else { %>
                 <h1>No Products in Cart!</h1>
             <% } %>
         </main>
         <%- include('../includes/end.ejs') %>
+

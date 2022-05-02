@@ -12,6 +12,7 @@ import {
   getOrders,
   getInvoice,
   getCheckout,
+  getCheckoutSuccess,
 } from "../controllers/shop.js";
 
 const router = express.Router();
@@ -35,5 +36,9 @@ router.get("/orders", isAuth, getOrders);
 router.get("/orders/:orderId", isAuth, getInvoice);
 
 router.get("/checkout", isAuth, getCheckout);
+
+router.get("/checkout/success", isAuth, getCheckoutSuccess);
+
+router.get("/checkout/cancel", isAuth, getCheckout);
 
 export default router;
