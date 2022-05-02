@@ -1,11 +1,14 @@
 import fs from "fs";
 import path from "path";
 
+import Stripe from "stripe";
 import PDFDocument from "pdfkit";
+import "dotenv/config";
 
 import Product from "../models/product.js";
 import Order from "../models/order.js";
 
+const stripe = Stripe(process.env.STRIPE_KEY);
 const ITEMS_PER_PAGE = 2;
 
 export const getProducts = async (req, res, next) => {
@@ -92,6 +95,9 @@ export const getCart = async (req, res, next) => {
     });
   } catch (err) {
     console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
@@ -117,6 +123,9 @@ export const postCartDeleteProduct = async (req, res, next) => {
     return res.redirect("/cart");
   } catch (err) {
     console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
@@ -150,6 +159,27 @@ export const getOrders = async (req, res, next) => {
       pageTitle: "Your Orders",
       orders: orders,
     });
+  } catch (err) {
+    console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+export const getCheckoutSuccess = async (req, res, next) => {
+  let { user } = req;
+  try {
+    user = await user.populate("cart.items.productId").execPopulate();
+    const products = user.cart.items.map((prod) => {
+      return { product: { ...prod.productId._doc }, quantity: prod.quantity };
+    });
+    const order = new Order({
+      items: products,
+      user: { userId: user, name: user.userName },
+    });
+    await Promise.all([order.save(), user.clearCart()]);
+    return res.redirect("/orders");
   } catch (err) {
     console.log(err);
     const error = new Error(err);
@@ -195,6 +225,46 @@ export const getInvoice = async (req, res, next) => {
     pdf.text("-------------------");
     pdf.fontSize(18).text(`Total price: $${totalPrice}`);
     return pdf.end();
+  } catch (err) {
+    console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+};
+
+export const getCheckout = async (req, res, next) => {
+  let { user } = req;
+  console.log(process.env.STRIPE_KEY);
+
+  try {
+    user = await user.populate("cart.items.productId").execPopulate();
+    const products = user.cart.items;
+    let totalPrice = products.reduce(
+      (a, b) => a + b.quantity * b.productId.price,
+      0
+    );
+    const session = await stripe.checkout.sessions.create({
+      success_url: `${req.protocol}://${req.get("host")}/checkout/success`,
+      cancel_url: `${req.protocol}://${req.get("host")}/checkout/cancel`,
+      mode: "payment",
+      line_items: products.map((prod) => {
+        return {
+          currency: "usd",
+          quantity: prod.quantity,
+          name: prod.productId.title,
+          description: prod.productId.description,
+          amount: prod.productId.price * 100,
+        };
+      }),
+    });
+    return res.render("shop/checkout", {
+      path: "/cart",
+      pageTitle: "Your Cart",
+      products: user.cart.items,
+      totalPrice,
+      sessionId: session.id,
+    });
   } catch (err) {
     console.log(err);
     const error = new Error(err);
