@@ -92,6 +92,9 @@ export const getCart = async (req, res, next) => {
     });
   } catch (err) {
     console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
@@ -117,6 +120,9 @@ export const postCartDeleteProduct = async (req, res, next) => {
     return res.redirect("/cart");
   } catch (err) {
     console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
   }
 };
 
@@ -202,3 +208,23 @@ export const getInvoice = async (req, res, next) => {
     return next(error);
   }
 };
+
+export const getCheckout = async (req, res, next) => {
+  let { user } = req;
+  try {
+    user = await user.populate("cart.items.productId").execPopulate();
+    const products = user.cart.items;
+    let totalPrice = products.reduce((a, b) => a + b.quantity * b.productId.price, 0)
+    return res.render("shop/checkout", {
+      path: "/cart",
+      pageTitle: "Your Cart",
+      products: user.cart.items,
+      totalPrice
+    });
+  } catch (err) {
+    console.log(err);
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
+  }
+}
