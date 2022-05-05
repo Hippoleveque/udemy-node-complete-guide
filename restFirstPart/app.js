@@ -1,6 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 import feedRoutes from "./routes/feed.js";
+import mongoose from "mongoose";
 
 const app = express();
 
@@ -18,4 +19,15 @@ app.use((req, res, next) => {
 
 app.use("/feed", feedRoutes);
 
-app.listen(8080);
+const mongoUrl = "mongodb://localhost:27017/blog";
+
+const main = async () => {
+  try {
+    await mongoose.connect(mongoUrl);
+    app.listen(8080);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+main();
