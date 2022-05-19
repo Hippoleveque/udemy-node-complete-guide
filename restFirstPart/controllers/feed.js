@@ -4,12 +4,27 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import { validationResult } from "express-validator";
 
+const ITEMS_PER_PAGE = 2;
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const getPosts = async (req, res, next) => {
-  const posts = await Post.find();
-  return res.status(200).json({ posts: posts });
+  console.log("GetPosts Called");
+  const page = +req.query.page || 1;
+  try {
+    const totalPosts = await Post.find().countDocuments();
+    const posts = await Post.find()
+      .skip((page - 1) * ITEMS_PER_PAGE)
+      .limit(ITEMS_PER_PAGE)
+      .exec();
+    return res.status(200).json({ posts: posts, totalItems: totalPosts });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
 };
 
 export const createPost = async (req, res, next) => {
@@ -46,7 +61,7 @@ export const createPost = async (req, res, next) => {
     if (!err.statusCode) {
       err.statusCode = 500;
     }
-    throw err;
+    next(err);
   }
 };
 
@@ -104,6 +119,26 @@ export const updatePost = async (req, res, next) => {
     post.imageUrl = imageUrl;
     const result = await post.save();
     res.status(200).json({ message: "postUpdated", post: result });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+export const deletePost = async (req, res, next) => {
+  const { postId } = req.params;
+  try {
+    const post = await Post.findById(postId).exec();
+    if (!post) {
+      const err = new Error("Not post was found for this ID");
+      err.statusCode = 404;
+      throw err;
+    }
+    clearImage(post.imageUrl);
+    await Post.findByIdAndDelete(postId).exec();
+    res.status(200).json({ message: "Post was deleted" });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
