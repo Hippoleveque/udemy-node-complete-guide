@@ -44,6 +44,10 @@ class Feed extends Component {
     socket.on("posts", (data) => {
       if (data.action === "create") {
         this.addPost(data.post);
+      } else if (data.action === "update") {
+        this.updatePost(data.post);
+      } else if (data.action === "delete") {
+        this.deletePost(data.postId);
       }
     });
   }
@@ -60,6 +64,30 @@ class Feed extends Component {
       return {
         posts: updatedPosts,
         totalPosts: prevState.totalPosts + 1,
+      };
+    });
+  };
+
+  updatePost = (post) => {
+    this.setState((prevState) => {
+      const updatedPosts = [...prevState.posts];
+      const indexToUpdate = updatedPosts.findIndex(
+        (el) => el._id.toString() === post._id.toString()
+      );
+      const prevPost = updatedPosts[indexToUpdate];
+      updatedPosts[indexToUpdate] = { ...post, creator: prevPost.creator };
+      return {
+        posts: updatedPosts,
+      };
+    });
+  };
+
+  deletePost = (postId) => {
+    this.setState((prevState) => {
+      let updatedPosts = [...prevState.posts];
+      updatedPosts = updatedPosts.filter((el) => el._id.toString() !== postId);
+      return {
+        posts: updatedPosts,
       };
     });
   };
@@ -181,15 +209,7 @@ class Feed extends Component {
           createdAt: resData.post.createdAt,
         };
         this.setState((prevState) => {
-          let updatedPosts = [...prevState.posts];
-          if (prevState.editPost) {
-            const postIndex = prevState.posts.findIndex(
-              (p) => p._id === prevState.editPost._id
-            );
-            updatedPosts[postIndex] = post;
-          }
           return {
-            posts: updatedPosts,
             isEditing: false,
             editPost: null,
             editLoading: false,
@@ -226,10 +246,8 @@ class Feed extends Component {
         return res.json();
       })
       .then((resData) => {
-        console.log(resData);
         this.setState((prevState) => {
-          const updatedPosts = prevState.posts.filter((p) => p._id !== postId);
-          return { posts: updatedPosts, postsLoading: false };
+          return { postsLoading: false };
         });
       })
       .catch((err) => {
