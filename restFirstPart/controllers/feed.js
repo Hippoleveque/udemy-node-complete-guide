@@ -5,6 +5,8 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import { validationResult } from "express-validator";
 
+import { getIo } from "../socket.js";
+
 const ITEMS_PER_PAGE = 2;
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,6 +18,7 @@ export const getPosts = async (req, res, next) => {
     const totalPosts = await Post.find().countDocuments();
     const posts = await Post.find()
       .populate("creator")
+      .sort({ createdAt: -1 })
       .skip((page - 1) * ITEMS_PER_PAGE)
       .limit(ITEMS_PER_PAGE)
       .exec();
@@ -58,6 +61,11 @@ export const createPost = async (req, res, next) => {
     const creator = await User.findById(userId).exec();
     creator.posts.push(post);
     await creator.save();
+    const io = getIo();
+    io.emit("posts", {
+      action: "create",
+      post: { ...post._doc, creator: { _id: creator._id, name: creator.name } },
+    });
     return res
       .status(201)
       .json({ post, creator: { _id: creator._id, name: creator.name } });
@@ -128,6 +136,8 @@ export const updatePost = async (req, res, next) => {
     post.title = title;
     post.imageUrl = imageUrl;
     const result = await post.save();
+    const io = getIo();
+    io.emit("posts", { action: "update", post });
     res.status(200).json({ message: "postUpdated", post: result });
   } catch (err) {
     if (!err.statusCode) {
@@ -157,6 +167,8 @@ export const deletePost = async (req, res, next) => {
     const user = await User.findById(userId).exec();
     user.posts.pull(postId);
     await user.save();
+    const io = getIo();
+    io.emit("posts", { action: "delete", postId: postId });
     res.status(200).json({ message: "Post was deleted" });
   } catch (err) {
     if (!err.statusCode) {

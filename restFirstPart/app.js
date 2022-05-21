@@ -7,6 +7,8 @@ import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import multer from "multer";
 
+import { initSocket } from "./socket.js";
+
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "./images");
@@ -65,7 +67,11 @@ const mongoUrl = "mongodb://localhost:27017/blog";
 const main = async () => {
   try {
     await mongoose.connect(mongoUrl);
-    app.listen(8080);
+    const server = app.listen(8080);
+    const io = initSocket(server);
+    io.on("connection", (socket) => {
+      console.log("client connected");
+    });
   } catch (err) {
     console.log(err);
   }
