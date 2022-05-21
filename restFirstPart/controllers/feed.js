@@ -89,6 +89,7 @@ export const getPost = async (req, res, next) => {
 
 export const updatePost = async (req, res, next) => {
   const { postId } = req.params;
+  const { userId } = req;
   const errors = validationResult(req);
   const { title, content } = req.body;
   let imageUrl = req.body.image;
@@ -105,6 +106,11 @@ export const updatePost = async (req, res, next) => {
     if (!post) {
       const err = new Error("Not post was found for this ID");
       err.statusCode = 404;
+      throw err;
+    }
+    if (post.creator._id.toString() !== userId) {
+      const err = new Error("You are not the author of this post !")
+      err.statusCode = 401;
       throw err;
     }
     if (req.file) {
@@ -133,11 +139,17 @@ export const updatePost = async (req, res, next) => {
 
 export const deletePost = async (req, res, next) => {
   const { postId } = req.params;
+  const { userId } = req;
   try {
     const post = await Post.findById(postId).exec();
     if (!post) {
       const err = new Error("Not post was found for this ID");
       err.statusCode = 404;
+      throw err;
+    }
+    if (post.creator._id.toString() !== userId) {
+      const err = new Error("You are not the author of this post !")
+      err.statusCode = 401;
       throw err;
     }
     clearImage(post.imageUrl);
