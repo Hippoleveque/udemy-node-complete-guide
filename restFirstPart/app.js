@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import bodyParser from "body-parser";
 import feedRoutes from "./routes/feed.js";
+import authRoutes from "./routes/auth.js";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import multer from "multer";
@@ -50,6 +51,8 @@ app.use((req, res, next) => {
 });
 
 app.use("/feed", feedRoutes);
+
+app.use("/auth", authRoutes);
 
 app.use((err, req, res, next) => {
   const { message } = err;

@@ -10,7 +10,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const getPosts = async (req, res, next) => {
-  console.log("GetPosts Called");
   const page = +req.query.page || 1;
   try {
     const totalPosts = await Post.find().countDocuments();
