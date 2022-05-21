@@ -109,7 +109,7 @@ export const updatePost = async (req, res, next) => {
       throw err;
     }
     if (post.creator._id.toString() !== userId) {
-      const err = new Error("You are not the author of this post !")
+      const err = new Error("You are not the author of this post !");
       err.statusCode = 401;
       throw err;
     }
@@ -148,12 +148,15 @@ export const deletePost = async (req, res, next) => {
       throw err;
     }
     if (post.creator._id.toString() !== userId) {
-      const err = new Error("You are not the author of this post !")
+      const err = new Error("You are not the author of this post !");
       err.statusCode = 401;
       throw err;
     }
     clearImage(post.imageUrl);
     await Post.findByIdAndDelete(postId).exec();
+    const user = await User.findById(userId).exec();
+    user.posts.pull(postId);
+    await user.save();
     res.status(200).json({ message: "Post was deleted" });
   } catch (err) {
     if (!err.statusCode) {
