@@ -1,4 +1,5 @@
 import Post from "../models/post.js";
+import User from "../models/user.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -14,6 +15,7 @@ export const getPosts = async (req, res, next) => {
   try {
     const totalPosts = await Post.find().countDocuments();
     const posts = await Post.find()
+      .populate("creator")
       .skip((page - 1) * ITEMS_PER_PAGE)
       .limit(ITEMS_PER_PAGE)
       .exec();
@@ -28,7 +30,7 @@ export const getPosts = async (req, res, next) => {
 
 export const createPost = async (req, res, next) => {
   const { title, content } = req.body;
-  const { file } = req;
+  const { file, userId } = req;
   const errors = validationResult(req);
   try {
     if (!errors.isEmpty()) {
@@ -49,13 +51,16 @@ export const createPost = async (req, res, next) => {
       title,
       content,
       imageUrl: file.path,
-      creator: {
-        name: "Hippolyte",
-      },
+      creator: userId,
     };
     post = new Post(post);
     await post.save();
-    return res.status(201).json(post);
+    const creator = await User.findById(userId).exec();
+    creator.posts.push(post);
+    await creator.save();
+    return res
+      .status(201)
+      .json({ post, creator: { _id: creator._id, name: creator.name } });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -67,7 +72,7 @@ export const createPost = async (req, res, next) => {
 export const getPost = async (req, res, next) => {
   const { postId } = req.params;
   try {
-    const post = await Post.findById(postId).exec();
+    const post = await Post.findById(postId).populate("creator").exec();
     if (!post) {
       const err = new Error("Not post was found for this ID");
       err.statusCode = 404;

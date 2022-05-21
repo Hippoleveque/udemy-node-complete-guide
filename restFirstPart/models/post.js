@@ -4,10 +4,9 @@ const { Schema, model } = mongoose;
 const postSchema = new Schema(
   {
     creator: {
-      name: {
-        type: String,
-        required: true,
-      },
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: "User",
     },
     content: {
       type: String,
