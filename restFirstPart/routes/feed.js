@@ -7,6 +7,8 @@ import {
   getPost,
   updatePost,
   deletePost,
+  updateStatus,
+  getStatus,
 } from "../controllers/feed.js";
 import { isAuth } from "../middlewares/isAuth.js";
 
@@ -37,5 +39,14 @@ router.put(
 );
 
 router.delete("/post/:postId", isAuth, deletePost);
+
+router.get("/status", isAuth, getStatus);
+
+router.post(
+  "/status",
+  [body("status").trim().isLength({ min: 5 })],
+  isAuth,
+  updateStatus
+);
 
 export default router;

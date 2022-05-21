@@ -166,6 +166,35 @@ export const deletePost = async (req, res, next) => {
   }
 };
 
+export const getStatus = async (req, res, next) => {
+  const { userId } = req;
+  try {
+    const user = await User.findById(userId).exec();
+    return res.status(200).json({ status: user.status });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+export const updateStatus = async (req, res, next) => {
+  const { userId } = req;
+  const { status } = req.body;
+  try {
+    const user = await User.findById(userId).exec();
+    user.status = status;
+    user.save();
+    return res.status(201).json({ message: "Status Updated" });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
 const clearImage = (imageUrl) => {
   const imagePath = path.join(__dirname, "..", imageUrl);
   fs.unlink(imagePath, (err) => {
