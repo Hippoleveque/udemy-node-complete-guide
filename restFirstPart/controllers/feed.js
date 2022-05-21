@@ -5,6 +5,8 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import { validationResult } from "express-validator";
 
+import { getIo } from "../socket.js";
+
 const ITEMS_PER_PAGE = 2;
 
 const __filename = fileURLToPath(import.meta.url);
@@ -58,6 +60,11 @@ export const createPost = async (req, res, next) => {
     const creator = await User.findById(userId).exec();
     creator.posts.push(post);
     await creator.save();
+    const io = getIo();
+    io.emit("posts", {
+      action: "create",
+      post: { ...post._doc, creator: { _id: creator._id, name: creator.name } },
+    });
     return res
       .status(201)
       .json({ post, creator: { _id: creator._id, name: creator.name } });

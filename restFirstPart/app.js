@@ -6,7 +6,8 @@ import authRoutes from "./routes/auth.js";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
 import multer from "multer";
-import { Server } from "socket.io";
+
+import { initSocket } from "./socket.js";
 
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -67,7 +68,7 @@ const main = async () => {
   try {
     await mongoose.connect(mongoUrl);
     const server = app.listen(8080);
-    const io = new Server(server, { cors: { origin: "*" } });
+    const io = initSocket(server);
     io.on("connection", (socket) => {
       console.log("client connected");
     });
