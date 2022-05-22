@@ -41,7 +41,6 @@ class Feed extends Component {
     this.loadPosts();
   }
 
-
   loadPosts = (direction) => {
     if (direction) {
       this.setState({ postsLoading: true, posts: [] });
@@ -127,36 +126,48 @@ class Feed extends Component {
       editLoading: true,
     });
     // Set up data (with image!)
-    let url = "http://localhost:8080/feed/posts";
-    let method = "POST";
-    let formData = new FormData();
-    formData.append("title", postData.title);
-    formData.append("content", postData.content);
-    formData.append("image", postData.image);
-    if (this.state.editPost) {
-      url = `http://localhost:8080/feed/post/${this.state.editPost._id}`;
-      method = "PUT";
-    }
-    fetch(url, {
-      method,
+    let gqlQuery = {
+      query: `
+        mutation {
+          createPost(inputData: {title: "${postData.title}", content:"${postData.content}", imageUrl: "someUrl"}) {
+            _id
+            title
+            content
+            creator {
+              name
+            }
+            createdAt
+            imageUrl
+          }
+        }
+      `,
+    };
+    fetch("http://localhost:8080/graphql", {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${this.props.token}`,
+        "Content-Type": "application/json",
       },
-      body: formData,
+      body: JSON.stringify(gqlQuery),
     })
       .then((res) => {
-        if (res.status !== 200 && res.status !== 201) {
-          throw new Error("Creating or editing a post failed!");
-        }
         return res.json();
       })
       .then((resData) => {
+        if (resData.errors && resData.errors[0].status === 422) {
+          throw new Error(
+            "Validation failed. Make sure the title and content are not too short."
+          );
+        }
+        if (resData.errors) {
+          throw new Error("Creating or editing a post failed!");
+        }
         const post = {
-          _id: resData.post._id,
-          title: resData.post.title,
-          content: resData.post.content,
-          creator: resData.creator,
-          createdAt: resData.post.createdAt,
+          _id: resData.data.createPost._id,
+          title: resData.data.createPost.title,
+          content: resData.data.createPost.content,
+          creator: resData.data.createPost.creator,
+          createdAt: resData.data.createPost.createdAt,
         };
         this.setState((prevState) => {
           return {
