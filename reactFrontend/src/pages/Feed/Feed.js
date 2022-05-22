@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from "react";
-import openSocket from "socket.io-client";
 
 import Post from "../../components/Feed/Post/Post";
 import Button from "../../components/Button/Button";
@@ -40,57 +39,8 @@ class Feed extends Component {
       .catch(this.catchError);
 
     this.loadPosts();
-    const socket = openSocket("http://localhost:8080");
-    socket.on("posts", (data) => {
-      if (data.action === "create") {
-        this.addPost(data.post);
-      } else if (data.action === "update") {
-        this.updatePost(data.post);
-      } else if (data.action === "delete") {
-        this.deletePost(data.postId);
-      }
-    });
   }
 
-  addPost = (post) => {
-    this.setState((prevState) => {
-      const updatedPosts = [...prevState.posts];
-      if (prevState.postPage === 1) {
-        if (prevState.posts.length >= 2) {
-          updatedPosts.pop();
-        }
-        updatedPosts.unshift(post);
-      }
-      return {
-        posts: updatedPosts,
-        totalPosts: prevState.totalPosts + 1,
-      };
-    });
-  };
-
-  updatePost = (post) => {
-    this.setState((prevState) => {
-      const updatedPosts = [...prevState.posts];
-      const indexToUpdate = updatedPosts.findIndex(
-        (el) => el._id.toString() === post._id.toString()
-      );
-      const prevPost = updatedPosts[indexToUpdate];
-      updatedPosts[indexToUpdate] = { ...post, creator: prevPost.creator };
-      return {
-        posts: updatedPosts,
-      };
-    });
-  };
-
-  deletePost = (postId) => {
-    this.setState((prevState) => {
-      let updatedPosts = [...prevState.posts];
-      updatedPosts = updatedPosts.filter((el) => el._id.toString() !== postId);
-      return {
-        posts: updatedPosts,
-      };
-    });
-  };
 
   loadPosts = (direction) => {
     if (direction) {
