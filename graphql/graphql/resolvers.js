@@ -6,6 +6,8 @@ import "dotenv/config";
 import User from "../models/user.js";
 import Post from "../models/post.js";
 
+const ITEMS_PER_PAGE = 2;
+
 const createUser = async ({ inputData }, req) => {
   const { email, name, password } = inputData;
   const validationErrs = [];
@@ -140,15 +142,41 @@ const createPost = async ({ inputData }, req) => {
       createdAt: createdPost._doc.createdAt.toISOString(),
     };
   } catch (err) {
-    if (!err.statusCode) {
+    if (!err.code) {
       err.code = 500;
     }
     throw err;
   }
 };
 
+const getPosts = async (req) => {
+    // const page = +req.query.page || 1;
+    const { isAuthenticated } = req;
+    // if (!isAuthenticated) {
+    //     const error = new Error("Not Authenticated");
+    //     error.code = 401;
+    //     throw error;
+    // }
+    try {
+    //   const totalPosts = await Post.find().countDocuments();
+      const posts = await Post.find()
+        .populate("creator")
+        .sort({ createdAt: -1 })
+        // .skip((page - 1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE)
+        .exec();
+      return posts;
+    } catch (err) {
+      if (!err.code) {
+        err.code = 500;
+      }
+      next(err);
+    }
+}
+
 export const root = {
   createUser,
   login,
   createPost,
+  getPosts
 };
