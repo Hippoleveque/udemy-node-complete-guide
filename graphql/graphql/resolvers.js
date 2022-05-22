@@ -92,7 +92,7 @@ const login = async ({ email, password }, req) => {
 
 const createPost = async ({ inputData }, req) => {
   const { title, content, imageUrl } = inputData;
-  const { isAuthenticated, userId, file } = req;
+  const { isAuthenticated, userId } = req;
   const validationErrs = [];
   if (validator.isEmpty(title) || !validator.isLength(title, { min: 5 })) {
     validationErrs.push({ message: "Title too short." });
@@ -111,11 +111,6 @@ const createPost = async ({ inputData }, req) => {
     error.code = 401;
     throw error;
   }
-  //   if (!file) {
-  //     const error = new Error("File is required");
-  //     error.code = 422;
-  //     throw err;
-  //   }
   try {
     const creator = await User.findById(userId).exec();
     if (!creator) {
@@ -184,11 +179,11 @@ const posts = async ({ page }, req) => {
 
 const post = async ({ postId }, req) => {
   const { isAuthenticated } = req;
-//   if (!isAuthenticated) {
-//     const error = new Error("Not Authenticated");
-//     error.code = 401;
-//     throw error;
-//   }
+  if (!isAuthenticated) {
+    const error = new Error("Not Authenticated");
+    error.code = 401;
+    throw error;
+  }
   try {
     const post = await Post.findById(postId).populate("creator").exec();
     if (!post) {
@@ -210,10 +205,64 @@ const post = async ({ postId }, req) => {
   }
 };
 
+export const updatePost = async ({ postId, inputData }, req) => {
+  const { title, content, imageUrl } = inputData;
+  const { userId, isAuthenticated } = req;
+  const validationErrs = [];
+  if (validator.isEmpty(title) || !validator.isLength(title, { min: 5 })) {
+    validationErrs.push({ message: "Title too short." });
+  }
+  if (validator.isEmpty(content) || !validator.isLength(content, { min: 5 })) {
+    validationErrs.push({ message: "Content too short." });
+  }
+  if (validationErrs.length > 0) {
+    const err = new Error("Invalid Input.");
+    err.data = validationErrs;
+    err.code = 422;
+    throw err;
+  }
+  if (!isAuthenticated) {
+    const error = new Error("Not Authenticated");
+    error.code = 401;
+    throw error;
+  }
+  try {
+    const post = await Post.findById(postId).exec();
+    if (!post) {
+      const err = new Error("Not post was found for this ID");
+      err.code = 404;
+      throw err;
+    }
+    if (post.creator._id.toString() !== userId) {
+      const err = new Error("You are not the author of this post !");
+      err.statusCode = 401;
+      throw err;
+    }
+    post.content = content;
+    post.title = title;
+    post.imageUrl = imageUrl;
+    const creator = await User.findById(userId).exec();
+    const createdPost = await post.save();
+    return {
+      ...createdPost._doc,
+      _id: createdPost._doc._id.toString(),
+      creator: { ...creator._doc, _id: creator._doc._id.toString() },
+      updatedAt: createdPost._doc.updatedAt.toISOString(),
+      createdAt: createdPost._doc.createdAt.toISOString(),
+    };
+  } catch (err) {
+    if (!err.code) {
+      err.code = 500;
+    }
+    throw err;
+  }
+};
+
 export const root = {
   createUser,
   login,
   createPost,
   posts,
-  post
+  post,
+  updatePost
 };

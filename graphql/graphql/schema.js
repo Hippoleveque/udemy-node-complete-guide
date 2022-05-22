@@ -45,6 +45,7 @@ export default buildSchema(`
     type RootMutation {
         createUser(inputData: UserInputData!): User
         createPost(inputData: PostInputData!): Post
+        updatePost(postId: String!, inputData: PostInputData!): Post!
     }
 
     type RootQuery {

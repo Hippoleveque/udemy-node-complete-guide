@@ -155,7 +155,7 @@ class Feed extends Component {
     const formData = new FormData();
     formData.append("image", postData.image);
     if (this.state.editPost) {
-      formData.append('imagePath', this.state.editPost.imagePath);
+      formData.append("imagePath", this.state.editPost.imagePath);
     }
     // Set up data (with image!)
     fetch("http://localhost:8080/post-image", {
@@ -184,6 +184,25 @@ class Feed extends Component {
             }
           `,
         };
+        if (this.state.editPost) {
+          gqlQuery = {
+            query: `
+              mutation {
+                updatePost(postId: "${this.state.editPost._id}",inputData: {title: "${postData.title}", content:"${postData.content}", imageUrl: "${resData.imagePath}"}) {
+                  _id
+                  title
+                  content
+                  imageUrl
+                  creator {
+                    name
+                  }
+                  createdAt
+                  imageUrl
+                }
+              }
+            `,
+          };
+        }
         return fetch("http://localhost:8080/graphql", {
           method: "POST",
           headers: {
@@ -205,13 +224,17 @@ class Feed extends Component {
         if (resData.errors) {
           throw new Error("Creating or editing a post failed!");
         }
+        let postData = resData.data.createPost;
+        if (this.state.editPost) {
+          postData = resData.data.updatePost;
+        }
         const post = {
-          _id: resData.data.createPost._id,
-          title: resData.data.createPost.title,
-          content: resData.data.createPost.content,
-          creator: resData.data.createPost.creator,
-          createdAt: resData.data.createPost.createdAt,
-          imagePath: resData.data.createPost.imageUrl,
+          _id: postData._id,
+          title: postData.title,
+          content: postData.content,
+          creator: postData.creator,
+          createdAt: postData.createdAt,
+          imagePath: postData.imageUrl,
         };
         this.setState((prevState) => {
           let updatedPosts = [...prevState.posts];

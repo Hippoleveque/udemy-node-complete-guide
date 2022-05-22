@@ -14,18 +14,18 @@ export const createImage = async (req, res, next) => {
   }
   try {
     if (!req.file) {
-      res.status(200).json({ message: "No file provided." });
+     return res.status(200).json({ message: "No file provided.", imagePath: oldImagePath });
     }
     const imagePath = req.file.path;
     if (oldImagePath && imagePath !== oldImagePath) {
       clearImage(oldImagePath);
     }
-    res.status(201).json({ message: "Image created", imagePath });
+    return res.status(201).json({ message: "Image created", imagePath });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
     }
-    next(err);
+    return next(err);
   }
 };
 
