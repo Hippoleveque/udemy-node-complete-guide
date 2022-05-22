@@ -1,8 +1,25 @@
 import User from "../models/user.js";
 import bcrypt from "bcrypt";
+import validator from "validator";
 
 const createUser = async ({ inputData }, req) => {
   const { email, name, password } = inputData;
+  const validationErrs = [];
+  if (!validator.isEmail(email)) {
+    validationErrs.push({ message: "Email is invalid" });
+  }
+  if (
+    validator.isEmpty(password) ||
+    !validator.isLength(password, { min: 5 })
+  ) {
+    validationErrs.push({ message: "Password too short" });
+  }
+  if (validationErrs.length > 0) {
+    const err = new Error("Invalid Input.");
+    err.data = validationErrs;
+    err.code = 422;
+    throw err;
+  }
   try {
     const existingUser = await User.findOne({ email }).exec();
     if (existingUser) {
