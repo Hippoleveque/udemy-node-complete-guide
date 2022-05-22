@@ -63,6 +63,7 @@ class Feed extends Component {
               _id
               title
               content
+              imageUrl
               creator {
                 name
               }
@@ -151,31 +152,47 @@ class Feed extends Component {
     this.setState({
       editLoading: true,
     });
+    const formData = new FormData();
+    formData.append("image", postData.image);
+    if (this.state.editPost) {
+      formData.append('imagePath', this.state.editPost.imagePath);
+    }
     // Set up data (with image!)
-    let gqlQuery = {
-      query: `
-        mutation {
-          createPost(inputData: {title: "${postData.title}", content:"${postData.content}", imageUrl: "someUrl"}) {
-            _id
-            title
-            content
-            creator {
-              name
-            }
-            createdAt
-            imageUrl
-          }
-        }
-      `,
-    };
-    fetch("http://localhost:8080/graphql", {
-      method: "POST",
+    fetch("http://localhost:8080/post-image", {
+      method: "PUT",
       headers: {
         Authorization: `Bearer ${this.props.token}`,
-        "Content-Type": "application/json",
       },
-      body: JSON.stringify(gqlQuery),
+      body: formData,
     })
+      .then((res) => res.json())
+      .then((resData) => {
+        let gqlQuery = {
+          query: `
+            mutation {
+              createPost(inputData: {title: "${postData.title}", content:"${postData.content}", imageUrl: "${resData.imagePath}"}) {
+                _id
+                title
+                content
+                imageUrl
+                creator {
+                  name
+                }
+                createdAt
+                imageUrl
+              }
+            }
+          `,
+        };
+        return fetch("http://localhost:8080/graphql", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${this.props.token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(gqlQuery),
+        });
+      })
       .then((res) => {
         return res.json();
       })
@@ -194,12 +211,13 @@ class Feed extends Component {
           content: resData.data.createPost.content,
           creator: resData.data.createPost.creator,
           createdAt: resData.data.createPost.createdAt,
+          imagePath: resData.data.createPost.imageUrl,
         };
-        this.setState(prevState => {
+        this.setState((prevState) => {
           let updatedPosts = [...prevState.posts];
           if (prevState.editPost) {
             const postIndex = prevState.posts.findIndex(
-              p => p._id === prevState.editPost._id
+              (p) => p._id === prevState.editPost._id
             );
             updatedPosts[postIndex] = post;
           } else {
@@ -210,10 +228,9 @@ class Feed extends Component {
             posts: updatedPosts,
             isEditing: false,
             editPost: null,
-            editLoading: false
+            editLoading: false,
           };
         });
-        
       })
       .catch((err) => {
         console.log(err);
