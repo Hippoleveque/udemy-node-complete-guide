@@ -50,6 +50,7 @@ export default buildSchema(`
     type RootQuery {
         login(email: String!, password: String!): AuthData!
         posts(page: Int): PostsData
+        post(postId: String!): Post!
     }
 
     schema {

@@ -10,6 +10,7 @@ import { graphqlHTTP } from "express-graphql";
 import { root } from "./graphql/resolvers.js";
 import schema from "./graphql/schema.js";
 import { checkAuth } from "./middlewares/auth.js";
+import { createImage } from "./middlewares/images.js";
 
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -58,6 +59,8 @@ app.use((req, res, next) => {
 });
 
 app.use(checkAuth);
+
+app.put("/post-image", createImage);
 
 app.use(
   "/graphql",

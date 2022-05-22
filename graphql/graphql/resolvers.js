@@ -182,9 +182,38 @@ const posts = async ({ page }, req) => {
   }
 };
 
+const post = async ({ postId }, req) => {
+  const { isAuthenticated } = req;
+//   if (!isAuthenticated) {
+//     const error = new Error("Not Authenticated");
+//     error.code = 401;
+//     throw error;
+//   }
+  try {
+    const post = await Post.findById(postId).populate("creator").exec();
+    if (!post) {
+      const err = new Error("No post was found for this ID");
+      err.code = 404;
+      throw err;
+    }
+    return {
+      ...post._doc,
+      _id: post._doc._id.toString(),
+      updatedAt: post._doc.updatedAt.toISOString(),
+      createdAt: post._doc.createdAt.toISOString(),
+    };
+  } catch (err) {
+    if (!err.code) {
+      err.code = 500;
+    }
+    throw err;
+  }
+};
+
 export const root = {
   createUser,
   login,
   createPost,
   posts,
+  post
 };
