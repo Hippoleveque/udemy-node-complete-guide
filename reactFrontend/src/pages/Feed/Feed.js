@@ -57,7 +57,7 @@ class Feed extends Component {
     const gqlQuery = {
       query: `
         {
-          posts {
+          posts (page: ${this.state.postPage}) {
             totalItems
             posts {
               _id
@@ -203,6 +203,7 @@ class Feed extends Component {
             );
             updatedPosts[postIndex] = post;
           } else {
+            updatedPosts.pop();
             updatedPosts.unshift(post);
           }
           return {

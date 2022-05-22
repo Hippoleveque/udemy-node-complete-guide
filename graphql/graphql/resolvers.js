@@ -149,20 +149,20 @@ const createPost = async ({ inputData }, req) => {
   }
 };
 
-const posts = async (args, req) => {
-  // const page = +req.query.page || 1;
+const posts = async ({ page }, req) => {
+  const queryPage = page || 1;
   const { isAuthenticated } = req;
-  // if (!isAuthenticated) {
-  //     const error = new Error("Not Authenticated");
-  //     error.code = 401;
-  //     throw error;
-  // }
+  if (!isAuthenticated) {
+    const error = new Error("Not Authenticated");
+    error.code = 401;
+    throw error;
+  }
   try {
     const totalPosts = await Post.find().countDocuments();
     let posts = await Post.find()
       .populate("creator")
       .sort({ createdAt: -1 })
-      // .skip((page - 1) * ITEMS_PER_PAGE)
+      .skip((queryPage - 1) * ITEMS_PER_PAGE)
       .limit(ITEMS_PER_PAGE)
       .exec();
     posts = posts.map((el) => {
