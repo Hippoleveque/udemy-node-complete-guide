@@ -149,34 +149,42 @@ const createPost = async ({ inputData }, req) => {
   }
 };
 
-const getPosts = async (req) => {
-    // const page = +req.query.page || 1;
-    const { isAuthenticated } = req;
-    // if (!isAuthenticated) {
-    //     const error = new Error("Not Authenticated");
-    //     error.code = 401;
-    //     throw error;
-    // }
-    try {
-    //   const totalPosts = await Post.find().countDocuments();
-      const posts = await Post.find()
-        .populate("creator")
-        .sort({ createdAt: -1 })
-        // .skip((page - 1) * ITEMS_PER_PAGE)
-        .limit(ITEMS_PER_PAGE)
-        .exec();
-      return posts;
-    } catch (err) {
-      if (!err.code) {
-        err.code = 500;
-      }
-      next(err);
+const posts = async (args, req) => {
+  // const page = +req.query.page || 1;
+  const { isAuthenticated } = req;
+  // if (!isAuthenticated) {
+  //     const error = new Error("Not Authenticated");
+  //     error.code = 401;
+  //     throw error;
+  // }
+  try {
+    const totalPosts = await Post.find().countDocuments();
+    let posts = await Post.find()
+      .populate("creator")
+      .sort({ createdAt: -1 })
+      // .skip((page - 1) * ITEMS_PER_PAGE)
+      .limit(ITEMS_PER_PAGE)
+      .exec();
+    posts = posts.map((el) => {
+      return {
+        ...el._doc,
+        _id: el._doc._id.toString(),
+        updatedAt: el._doc.updatedAt.toISOString(),
+        createdAt: el._doc.createdAt.toISOString(),
+      };
+    });
+    return { posts, totalItems: totalPosts };
+  } catch (err) {
+    if (!err.code) {
+      err.code = 500;
     }
-}
+    next(err);
+  }
+};
 
 export const root = {
   createUser,
   login,
   createPost,
-  getPosts
+  posts,
 };
