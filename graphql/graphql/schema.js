@@ -31,8 +31,15 @@ export default buildSchema(`
         password: String!
     }
 
+    input PostInputData {
+        title: String!
+        content: String!
+        imageUrl: String!
+    }
+
     type RootMutation {
-        createUser(inputData: UserInputData): User
+        createUser(inputData: UserInputData!): User
+        createPost(inputData: PostInputData!): Post
     }
 
     type RootQuery {

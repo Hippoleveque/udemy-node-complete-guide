@@ -1,8 +1,10 @@
-import User from "../models/user.js";
 import bcrypt from "bcrypt";
 import validator from "validator";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
+
+import User from "../models/user.js";
+import Post from "../models/post.js";
 
 const createUser = async ({ inputData }, req) => {
   const { email, name, password } = inputData;
@@ -86,7 +88,67 @@ const login = async ({ email, password }, req) => {
   }
 };
 
+const createPost = async ({ inputData }, req) => {
+  const { title, content, imageUrl } = inputData;
+  const { isAuthenticated, userId, file } = req;
+  const validationErrs = [];
+  if (validator.isEmpty(title) || !validator.isLength(title, { min: 5 })) {
+    validationErrs.push({ message: "Title too short." });
+  }
+  if (validator.isEmpty(content) || !validator.isLength(content, { min: 5 })) {
+    validationErrs.push({ message: "Content too short." });
+  }
+  if (validationErrs.length > 0) {
+    const err = new Error("Invalid Input.");
+    err.data = validationErrs;
+    err.code = 422;
+    throw err;
+  }
+  if (!isAuthenticated) {
+    const error = new Error("Not Authenticated");
+    error.code = 401;
+    throw error;
+  }
+  //   if (!file) {
+  //     const error = new Error("File is required");
+  //     error.code = 422;
+  //     throw err;
+  //   }
+  try {
+    const creator = await User.findById(userId).exec();
+    if (!creator) {
+      const error = new Error("Invalid User");
+      error.code = 401;
+      throw error;
+    }
+    let post = {
+      title,
+      content,
+      imageUrl,
+      creator: userId,
+    };
+    post = new Post(post);
+    const createdPost = await post.save();
+
+    creator.posts.push(post);
+    await creator.save();
+    return {
+      ...createdPost._doc,
+      _id: createdPost._doc._id.toString(),
+      creator: { ...creator._doc, _id: creator._doc._id.toString() },
+      updatedAt: createdPost._doc.updatedAt.toISOString(),
+      createdAt: createdPost._doc.createdAt.toISOString(),
+    };
+  } catch (err) {
+    if (!err.statusCode) {
+      err.code = 500;
+    }
+    throw err;
+  }
+};
+
 export const root = {
   createUser,
-  login
+  login,
+  createPost,
 };
