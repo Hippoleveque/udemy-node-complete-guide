@@ -15,8 +15,8 @@ class SinglePost extends Component {
   componentDidMount() {
     const postId = this.props.match.params.postId;
     const gqlQuery = {
-      query: `{
-          post(postId: "${postId}") {
+      query: `query FetchPost($postId: String!){
+          post(postId: $postId) {
             _id
             title
             content
@@ -28,6 +28,9 @@ class SinglePost extends Component {
           }
         }
       `,
+      variables: {
+        postId
+      }
     };
     fetch("http://localhost:8080/graphql", {
       method: "POST",
