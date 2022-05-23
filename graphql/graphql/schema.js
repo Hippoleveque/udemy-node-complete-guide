@@ -30,6 +30,10 @@ export default buildSchema(`
         totalItems: Int!
     }
 
+    type StatusData {
+        status: String
+    }
+
     input UserInputData {
         email: String!
         name: String!
@@ -54,7 +58,7 @@ export default buildSchema(`
         login(email: String!, password: String!): AuthData!
         posts(page: Int): PostsData
         post(postId: String!): Post!
-        getStatus: String!
+        status: String
     }
 
     schema {

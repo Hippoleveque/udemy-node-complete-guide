@@ -309,7 +309,7 @@ const updateStatus = async ({ newStatus }, req) => {
     const user = await User.findById(userId).exec();
     user.status = newStatus;
     const updatedUser = await user.save();
-    return { ...updatedUser._doc, _id: updatedUser_doc._id.toString() };
+    return { ...updatedUser._doc, _id: updatedUser._doc._id.toString() };
   } catch (err) {
     if (!err.code) {
       err.code = 500;
@@ -318,7 +318,7 @@ const updateStatus = async ({ newStatus }, req) => {
   }
 };
 
-const getStatus = async (_, req) => {
+const status = async (_, req) => {
   const { userId, isAuthenticated } = req;
   if (!isAuthenticated) {
     const error = new Error("Not Authenticated");
@@ -345,5 +345,5 @@ export const root = {
   updatePost,
   deletePost,
   updateStatus,
-  getStatus
+  status,
 };
