@@ -318,6 +318,24 @@ const updateStatus = async ({ newStatus }, req) => {
   }
 };
 
+const getStatus = async (_, req) => {
+  const { userId, isAuthenticated } = req;
+  if (!isAuthenticated) {
+    const error = new Error("Not Authenticated");
+    error.code = 401;
+    throw error;
+  }
+  try {
+    const user = await User.findById(userId).exec();
+    return user.status;
+  } catch (err) {
+    if (!err.code) {
+      err.code = 500;
+    }
+    throw err;
+  }
+};
+
 export const root = {
   createUser,
   login,
@@ -326,5 +344,6 @@ export const root = {
   post,
   updatePost,
   deletePost,
-  updateStatus
+  updateStatus,
+  getStatus
 };

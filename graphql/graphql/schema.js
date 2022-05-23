@@ -54,6 +54,7 @@ export default buildSchema(`
         login(email: String!, password: String!): AuthData!
         posts(page: Int): PostsData
         post(postId: String!): Post!
+        getStatus: String!
     }
 
     schema {
