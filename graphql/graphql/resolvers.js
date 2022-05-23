@@ -5,6 +5,7 @@ import "dotenv/config";
 
 import User from "../models/user.js";
 import Post from "../models/post.js";
+import { clearImage } from "../middlewares/images.js";
 
 const ITEMS_PER_PAGE = 2;
 
@@ -258,11 +259,51 @@ export const updatePost = async ({ postId, inputData }, req) => {
   }
 };
 
+export const deletePost = async ({ postId }, req) => {
+  const { userId, isAuthenticated } = req;
+  if (!isAuthenticated) {
+    const error = new Error("Not Authenticated");
+    error.code = 401;
+    throw error;
+  }
+  try {
+    const post = await Post.findById(postId).populate("creator").exec();
+    if (!post) {
+      const err = new Error("Not post was found for this ID");
+      err.statusCode = 404;
+      throw err;
+    }
+    if (post.creator._id.toString() !== userId.toString()) {
+      const err = new Error("You are not the author of this post !");
+      err.code = 401;
+      throw err;
+    }
+    clearImage(post.imageUrl);
+    await Post.findByIdAndDelete(postId).exec();
+    const user = await User.findById(userId).exec();
+    user.posts.pull(postId);
+    await user.save();
+    return {
+      ...post._doc,
+      _id: post._doc._id.toString(),
+      creator: { ...post._doc.creator, _id: post._doc.creator._id.toString() },
+      updatedAt: post._doc.updatedAt.toISOString(),
+      createdAt: post._doc.createdAt.toISOString(),
+    };
+  } catch (err) {
+    if (!err.code) {
+      err.code = 500;
+    }
+    throw err;
+  }
+};
+
 export const root = {
   createUser,
   login,
   createPost,
   posts,
   post,
-  updatePost
+  updatePost,
+  deletePost,
 };

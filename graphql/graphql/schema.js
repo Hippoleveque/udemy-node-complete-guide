@@ -46,6 +46,7 @@ export default buildSchema(`
         createUser(inputData: UserInputData!): User
         createPost(inputData: PostInputData!): Post
         updatePost(postId: String!, inputData: PostInputData!): Post!
+        deletePost(postId: String!): Post!
     }
 
     type RootQuery {
