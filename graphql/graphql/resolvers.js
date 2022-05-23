@@ -298,6 +298,26 @@ export const deletePost = async ({ postId }, req) => {
   }
 };
 
+const updateStatus = async ({ newStatus }, req) => {
+  const { userId, isAuthenticated } = req;
+  if (!isAuthenticated) {
+    const error = new Error("Not Authenticated");
+    error.code = 401;
+    throw error;
+  }
+  try {
+    const user = await User.findById(userId).exec();
+    user.status = newStatus;
+    const updatedUser = await user.save();
+    return { ...updatedUser._doc, _id: updatedUser_doc._id.toString() };
+  } catch (err) {
+    if (!err.code) {
+      err.code = 500;
+    }
+    throw err;
+  }
+};
+
 export const root = {
   createUser,
   login,
@@ -306,4 +326,5 @@ export const root = {
   post,
   updatePost,
   deletePost,
+  updateStatus
 };
