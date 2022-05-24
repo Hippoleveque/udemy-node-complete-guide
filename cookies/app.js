@@ -32,7 +32,6 @@ import User from "./models/user.js";
 
 import { get404, get500 } from "./controllers/error.js";
 
-const MONGO_URL = "mongodb://localhost:27017/shopCookies";
 
 const app = express();
 let store = new MongoDBStore({
@@ -99,8 +98,8 @@ app.use((error, req, res, next) => {
 
 const main = async () => {
   try {
-    await mongoose.connect(MONGO_URL);
-    app.listen(3000);
+    await mongoose.connect(`${process.env.MONGO_URL}/${process.env.DEFAULT_DATABASE}`);
+    app.listen(process.env.PORT || 3000);
   } catch (err) {
     console.log(err);
   }
