@@ -9,6 +9,7 @@ import csrf from "csurf";
 import flash from "connect-flash";
 import multer from "multer";
 import helmet from "helmet";
+import compression from "compression";
 
 const MongoDBStore = MongoSession(session);
 const fileStorage = multer.diskStorage({
@@ -40,9 +41,10 @@ import { get404, get500 } from "./controllers/error.js";
 const app = express();
 
 app.use(helmet());
+app.use(compression());
 
 let store = new MongoDBStore({
-  uri: MONGO_URL,
+  uri: process.env.MONGO_URL,
   collection: "sessions",
 });
 const csrfProctection = csrf();

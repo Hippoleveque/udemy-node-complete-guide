@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "compression": "^1.7.4",
     "helmet": "^5.1.0"
   }
 }
