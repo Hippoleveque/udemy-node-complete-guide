@@ -8,6 +8,7 @@ import MongoSession from "connect-mongodb-session";
 import csrf from "csurf";
 import flash from "connect-flash";
 import multer from "multer";
+import helmet from "helmet";
 
 const MongoDBStore = MongoSession(session);
 const fileStorage = multer.diskStorage({
@@ -20,20 +21,26 @@ const fileStorage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
     cb(null, true);
   } else {
     req.badImageType = true;
     cb(null, false);
   }
-}
+};
 
 import User from "./models/user.js";
 
 import { get404, get500 } from "./controllers/error.js";
 
-
 const app = express();
+
+app.use(helmet());
+
 let store = new MongoDBStore({
   uri: MONGO_URL,
   collection: "sessions",
@@ -98,7 +105,9 @@ app.use((error, req, res, next) => {
 
 const main = async () => {
   try {
-    await mongoose.connect(`${process.env.MONGO_URL}/${process.env.DEFAULT_DATABASE}`);
+    await mongoose.connect(
+      `${process.env.MONGO_URL}/${process.env.DEFAULT_DATABASE}`
+    );
     app.listen(process.env.PORT || 3000);
   } catch (err) {
     console.log(err);
