@@ -1,4 +1,6 @@
 import path from "path";
+import fs from "fs";
+
 import express from "express";
 import bodyParser from "body-parser";
 import session from "express-session";
@@ -10,6 +12,7 @@ import flash from "connect-flash";
 import multer from "multer";
 import helmet from "helmet";
 import compression from "compression";
+import morgan from "morgan";
 
 const MongoDBStore = MongoSession(session);
 const fileStorage = multer.diskStorage({
@@ -39,9 +42,6 @@ import User from "./models/user.js";
 import { get404, get500 } from "./controllers/error.js";
 
 const app = express();
-
-app.use(helmet());
-app.use(compression());
 
 let store = new MongoDBStore({
   uri: process.env.MONGO_URL,
@@ -98,6 +98,14 @@ app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 app.use("/500", get500);
+
+const appLogStream = fs.createWriteStream(path.join(__dirname, "access.log"), {
+  flags: "a",
+});
+
+app.use(helmet());
+app.use(compression());
+app.use(morgan("combined", { stream: appLogStream }));
 
 app.use(get404);
 
