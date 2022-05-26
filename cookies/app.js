@@ -1,4 +1,6 @@
 import path from "path";
+import fs from "fs";
+
 import express from "express";
 import bodyParser from "body-parser";
 import session from "express-session";
@@ -8,6 +10,9 @@ import MongoSession from "connect-mongodb-session";
 import csrf from "csurf";
 import flash from "connect-flash";
 import multer from "multer";
+import helmet from "helmet";
+import compression from "compression";
+import morgan from "morgan";
 
 const MongoDBStore = MongoSession(session);
 const fileStorage = multer.diskStorage({
@@ -20,23 +25,26 @@ const fileStorage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  ) {
     cb(null, true);
   } else {
     req.badImageType = true;
     cb(null, false);
   }
-}
+};
 
 import User from "./models/user.js";
 
 import { get404, get500 } from "./controllers/error.js";
 
-const MONGO_URL = "mongodb://localhost:27017/shopCookies";
-
 const app = express();
+
 let store = new MongoDBStore({
-  uri: MONGO_URL,
+  uri: process.env.MONGO_URL,
   collection: "sessions",
 });
 const csrfProctection = csrf();
@@ -91,6 +99,14 @@ app.use(shopRoutes);
 app.use(authRoutes);
 app.use("/500", get500);
 
+const appLogStream = fs.createWriteStream(path.join(__dirname, "access.log"), {
+  flags: "a",
+});
+
+app.use(helmet());
+app.use(compression());
+app.use(morgan("combined", { stream: appLogStream }));
+
 app.use(get404);
 
 app.use((error, req, res, next) => {
@@ -99,8 +115,10 @@ app.use((error, req, res, next) => {
 
 const main = async () => {
   try {
-    await mongoose.connect(MONGO_URL);
-    app.listen(3000);
+    await mongoose.connect(
+      `${process.env.MONGO_URL}/${process.env.DEFAULT_DATABASE}`
+    );
+    app.listen(process.env.PORT || 3000);
   } catch (err) {
     console.log(err);
   }

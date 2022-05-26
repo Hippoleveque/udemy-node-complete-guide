@@ -1,0 +1,10 @@
+{
+  "env": {
+    "SENDGRID_KEY": "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",
+    "HOST_URL": "http://localhost:3000",
+    "STRIPE_KEY": "sk_test_51Kv7uCHci9JYZ95CTIHRx4DQJafRMfQS3Bd5MSQWn782KenWcq84lWKLinnOES22T2ZpY5EnPyWpz0tVPkLGETVi00UpfghHsX",
+    "PORT": 3000,
+    "MONGO_URL": "mongodb://localhost:27017",
+    "DEFAULT_DATABASE": "shopCookies"
+  }
+}
