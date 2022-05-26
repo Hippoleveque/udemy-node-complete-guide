@@ -43,6 +43,7 @@ exports.login = async (req, res, next) => {
       const error = new Error('A user with this email could not be found.');
       error.statusCode = 401;
       throw error;
+
     }
     loadedUser = user;
     const isEqual = await bcrypt.compare(password, user.password);
@@ -65,7 +66,9 @@ exports.login = async (req, res, next) => {
       err.statusCode = 500;
     }
     next(err);
+    return err;
   }
+  return 
 };
 
 exports.getUserStatus = async (req, res, next) => {
