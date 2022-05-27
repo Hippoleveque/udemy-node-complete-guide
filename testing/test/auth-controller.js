@@ -6,6 +6,18 @@ const { login, getUserStatus } = require("../controllers/auth.js");
 const User = require("../models/user.js");
 
 describe("Auth Controller - Login", () => {
+  before(async () => {
+    await mongoose.connect("mongodb://localhost:27017/test-shop");
+    const user = new User({
+      posts: [],
+      _id: "6289facee3bd1e49c6338892",
+      email: "test@test.com",
+      password: "123",
+      name: "test",
+    });
+    await user.save();
+  });
+
   it("should throw error 500 if the database cannot be reached", (done) => {
     sinon.stub(User, "findOne");
     User.findOne.throws();
@@ -24,15 +36,6 @@ describe("Auth Controller - Login", () => {
   });
 
   it("should get the correct status code", async () => {
-    await mongoose.connect("mongodb://localhost:27017/test-shop");
-    const user = new User({
-      posts: [],
-      _id: "6289facee3bd1e49c6338892",
-      email: "test@test.com",
-      password: "123",
-      name: "test",
-    });
-    await user.save();
     const req = {
       userId: "6289facee3bd1e49c6338892",
     };
@@ -51,6 +54,9 @@ describe("Auth Controller - Login", () => {
     const result = await getUserStatus(req, res, () => {});
     expect(res).to.have.property("statusCode", 200);
     expect(res).to.have.property("userStatus", "I am new!");
+  });
+
+  after(async () => {
     await User.deleteMany({});
     await mongoose.disconnect();
   });
